@@ -5,6 +5,7 @@ import com.gdghajithon.appointment.dto.AppointmentCreateResponse;
 import com.gdghajithon.appointment.dto.AppointmentListResponse;
 import com.gdghajithon.appointment.dto.AppointmentUpdateRequest;
 import com.gdghajithon.appointment.dto.AppointmentUpdateResponse;
+import com.gdghajithon.appointment.dto.UpcomingAppointmentResponse;
 import com.gdghajithon.friend.FriendService;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -34,9 +36,13 @@ public class AppointmentService {
 
         User creator = getUser(userId);
         User friend = getUser(friendId);
+        User coach = getCoach(request.coachId(), creator, friend);
+        validateDateTime(request.dateTime());
+        validatePlace(request.place());
         Appointment appointment = Appointment.create(
                 creator,
                 friend,
+                coach,
                 request.dateTime(),
                 request.place()
         );
@@ -53,6 +59,15 @@ public class AppointmentService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<UpcomingAppointmentResponse> getUpcomingAppointments(Long userId) {
+        getUser(userId);
+        return appointmentRepository.findUpcomingByUserId(userId, LocalDateTime.now())
+                .stream()
+                .map(appointment -> UpcomingAppointmentResponse.from(appointment, userId))
+                .toList();
+    }
+
     @Transactional
     public AppointmentUpdateResponse update(
             Long userId,
@@ -61,7 +76,19 @@ public class AppointmentService {
     ) {
         Appointment appointment = getAppointment(appointmentId);
         validateParticipant(appointment, userId);
-        appointment.update(request.dateTime(), request.place());
+        validateDateTime(request.dateTime());
+        if (request.placeIncluded()) {
+            validatePlace(request.place());
+        }
+        User coach = request.coachId() == null
+                ? null
+                : getCoach(request.coachId(), appointment.getCreator(), appointment.getFriend());
+        appointment.update(
+                request.dateTime(),
+                request.place(),
+                request.placeIncluded(),
+                coach
+        );
         return AppointmentUpdateResponse.from(appointment);
     }
 
@@ -85,6 +112,28 @@ public class AppointmentService {
     private void validateParticipant(Appointment appointment, Long userId) {
         if (!appointment.hasParticipant(userId)) {
             throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+    }
+
+    private User getCoach(Long coachId, User creator, User friend) {
+        if (creator.getId().equals(coachId)) {
+            return creator;
+        }
+        if (friend.getId().equals(coachId)) {
+            return friend;
+        }
+        throw new BusinessException(ErrorCode.VALIDATION_ERROR);
+    }
+
+    private void validateDateTime(LocalDateTime dateTime) {
+        if (dateTime != null && !dateTime.isAfter(LocalDateTime.now())) {
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR);
+        }
+    }
+
+    private void validatePlace(String place) {
+        if (place != null && (place.isBlank() || place.length() > 100)) {
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR);
         }
     }
 }

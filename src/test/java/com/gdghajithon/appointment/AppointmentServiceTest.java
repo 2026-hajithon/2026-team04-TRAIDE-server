@@ -22,11 +22,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({AppointmentService.class, FriendService.class})
+@Import({AppointmentService.class, AppointmentQueryService.class, FriendService.class})
 class AppointmentServiceTest {
 
     @Autowired
     private AppointmentService appointmentService;
+
+    @Autowired
+    private AppointmentQueryService appointmentQueryService;
 
     @Autowired
     private AppointmentRepository appointmentRepository;
@@ -46,7 +49,7 @@ class AppointmentServiceTest {
         appointmentService.create(
                 creator.getId(),
                 friend.getId(),
-                new AppointmentCreateRequest(LocalDateTime.of(2026, 8, 2, 14, 0), "목동운동장")
+                new AppointmentCreateRequest(futureDateTime(), "목동운동장", creator.getId())
         );
 
         assertThat(appointmentService.getAppointments(creator.getId(), friend.getId()))
@@ -65,7 +68,7 @@ class AppointmentServiceTest {
         assertThatThrownBy(() -> appointmentService.create(
                 creator.getId(),
                 other.getId(),
-                new AppointmentCreateRequest(LocalDateTime.of(2026, 8, 2, 14, 0), "목동운동장")
+                new AppointmentCreateRequest(futureDateTime(), "목동운동장", creator.getId())
         ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -80,13 +83,13 @@ class AppointmentServiceTest {
         Long appointmentId = appointmentService.create(
                 creator.getId(),
                 friend.getId(),
-                new AppointmentCreateRequest(LocalDateTime.of(2026, 8, 2, 14, 0), "목동운동장")
+                new AppointmentCreateRequest(futureDateTime(), "목동운동장", creator.getId())
         ).id();
 
         appointmentService.update(
                 friend.getId(),
                 appointmentId,
-                new AppointmentUpdateRequest(LocalDateTime.of(2026, 8, 2, 15, 0), "한강공원")
+                new AppointmentUpdateRequest(futureDateTime().plusHours(1), "한강공원", friend.getId())
         );
 
         appointmentService.delete(friend.getId(), appointmentId);
@@ -101,14 +104,14 @@ class AppointmentServiceTest {
         Long appointmentId = appointmentService.create(
                 creator.getId(),
                 friend.getId(),
-                new AppointmentCreateRequest(LocalDateTime.of(2026, 8, 2, 14, 0), "목동운동장")
+                new AppointmentCreateRequest(futureDateTime(), "목동운동장", creator.getId())
         ).id();
 
-        LocalDateTime newDateTime = LocalDateTime.of(2026, 8, 2, 15, 0);
+        LocalDateTime newDateTime = futureDateTime().plusHours(1);
         var response = appointmentService.update(
                 creator.getId(),
                 appointmentId,
-                new AppointmentUpdateRequest(newDateTime, null)
+                new AppointmentUpdateRequest(newDateTime, null, null)
         );
 
         assertThat(response.dateTime()).isEqualTo(newDateTime);
@@ -120,21 +123,41 @@ class AppointmentServiceTest {
         User creator = saveUser("creator");
         User friend = saveUser("friend");
         saveFriendship(creator, friend);
-        LocalDateTime dateTime = LocalDateTime.of(2026, 8, 2, 14, 0);
+        LocalDateTime dateTime = futureDateTime();
         Long appointmentId = appointmentService.create(
                 creator.getId(),
                 friend.getId(),
-                new AppointmentCreateRequest(dateTime, "목동운동장")
+                new AppointmentCreateRequest(dateTime, "목동운동장", creator.getId())
         ).id();
 
         var response = appointmentService.update(
                 creator.getId(),
                 appointmentId,
-                new AppointmentUpdateRequest(null, "한강공원")
+                new AppointmentUpdateRequest(null, "한강공원", null)
         );
 
         assertThat(response.dateTime()).isEqualTo(dateTime);
         assertThat(response.place()).isEqualTo("한강공원");
+    }
+
+    @Test
+    void placeCanBeClearedWithExplicitNull() {
+        User creator = saveUser("creator");
+        User friend = saveUser("friend");
+        saveFriendship(creator, friend);
+        Long appointmentId = appointmentService.create(
+                creator.getId(),
+                friend.getId(),
+                new AppointmentCreateRequest(futureDateTime(), "목동운동장", creator.getId())
+        ).id();
+
+        var response = appointmentService.update(
+                creator.getId(),
+                appointmentId,
+                new AppointmentUpdateRequest(null, null, null, true)
+        );
+
+        assertThat(response.place()).isNull();
     }
 
     @Test
@@ -146,17 +169,130 @@ class AppointmentServiceTest {
         Long appointmentId = appointmentService.create(
                 creator.getId(),
                 friend.getId(),
-                new AppointmentCreateRequest(LocalDateTime.of(2026, 8, 2, 14, 0), "목동운동장")
+                new AppointmentCreateRequest(futureDateTime(), "목동운동장", creator.getId())
         ).id();
 
         assertThatThrownBy(() -> appointmentService.update(
                 other.getId(),
                 appointmentId,
-                new AppointmentUpdateRequest(LocalDateTime.of(2026, 8, 2, 15, 0), "한강공원")
+                new AppointmentUpdateRequest(futureDateTime().plusHours(1), "한강공원", null)
         ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.FORBIDDEN);
+    }
+
+    @Test
+    void appointmentCanBeCreatedWithoutPlace() {
+        User creator = saveUser("creator");
+        User friend = saveUser("friend");
+        saveFriendship(creator, friend);
+
+        var response = appointmentService.create(
+                creator.getId(),
+                friend.getId(),
+                new AppointmentCreateRequest(futureDateTime(), null, friend.getId())
+        );
+
+        assertThat(response.place()).isNull();
+        assertThat(response.coachId()).isEqualTo(friend.getId());
+    }
+
+    @Test
+    void coachCanBeChangedToOtherParticipant() {
+        User creator = saveUser("creator");
+        User friend = saveUser("friend");
+        saveFriendship(creator, friend);
+        Long appointmentId = appointmentService.create(
+                creator.getId(),
+                friend.getId(),
+                new AppointmentCreateRequest(futureDateTime(), null, creator.getId())
+        ).id();
+
+        var response = appointmentService.update(
+                friend.getId(),
+                appointmentId,
+                new AppointmentUpdateRequest(null, null, friend.getId())
+        );
+
+        assertThat(response.coachId()).isEqualTo(friend.getId());
+    }
+
+    @Test
+    void userWhoIsNotParticipantCannotBeCoach() {
+        User creator = saveUser("creator");
+        User friend = saveUser("friend");
+        User other = saveUser("other");
+        saveFriendship(creator, friend);
+
+        assertThatThrownBy(() -> appointmentService.create(
+                creator.getId(),
+                friend.getId(),
+                new AppointmentCreateRequest(futureDateTime(), null, other.getId())
+        ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.VALIDATION_ERROR);
+    }
+
+    @Test
+    void pastAppointmentCannotBeCreated() {
+        User creator = saveUser("creator");
+        User friend = saveUser("friend");
+        saveFriendship(creator, friend);
+
+        assertThatThrownBy(() -> appointmentService.create(
+                creator.getId(),
+                friend.getId(),
+                new AppointmentCreateRequest(LocalDateTime.now().minusMinutes(1), null, creator.getId())
+        ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.VALIDATION_ERROR);
+    }
+
+    @Test
+    void upcomingAppointmentsReturnOnlyFutureAppointmentsInDateOrder() {
+        User creator = saveUser("creator");
+        User friend = saveUser("friend");
+        saveFriendship(creator, friend);
+        appointmentRepository.save(Appointment.create(
+                creator,
+                friend,
+                creator,
+                LocalDateTime.now().minusDays(1),
+                null
+        ));
+        Long laterId = appointmentService.create(
+                creator.getId(),
+                friend.getId(),
+                new AppointmentCreateRequest(futureDateTime().plusHours(1), null, creator.getId())
+        ).id();
+        Long earlierId = appointmentService.create(
+                creator.getId(),
+                friend.getId(),
+                new AppointmentCreateRequest(futureDateTime(), null, friend.getId())
+        ).id();
+
+        assertThat(appointmentService.getUpcomingAppointments(creator.getId()))
+                .extracting("id")
+                .containsExactly(earlierId, laterId);
+    }
+
+    @Test
+    void appointmentCountsCanBeQueried() {
+        User creator = saveUser("creator");
+        User friend = saveUser("friend");
+        saveFriendship(creator, friend);
+        appointmentService.create(
+                creator.getId(),
+                friend.getId(),
+                new AppointmentCreateRequest(futureDateTime(), null, creator.getId())
+        );
+
+        assertThat(appointmentQueryService.countByUserId(creator.getId())).isEqualTo(1);
+        assertThat(appointmentQueryService.countBetweenUsers(creator.getId(), friend.getId())).isEqualTo(1);
+        assertThat(appointmentQueryService.existsBetweenUsers(creator.getId(), friend.getId())).isTrue();
     }
 
     private User saveUser(String loginId) {
@@ -165,5 +301,9 @@ class AppointmentServiceTest {
 
     private void saveFriendship(User first, User second) {
         friendshipRepository.save(Friendship.create(first, second));
+    }
+
+    private LocalDateTime futureDateTime() {
+        return LocalDateTime.now().plusDays(1).withNano(0);
     }
 }

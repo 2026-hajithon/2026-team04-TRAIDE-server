@@ -5,6 +5,7 @@ import com.gdghajithon.appointment.dto.AppointmentCreateResponse;
 import com.gdghajithon.appointment.dto.AppointmentListResponse;
 import com.gdghajithon.appointment.dto.AppointmentUpdateRequest;
 import com.gdghajithon.appointment.dto.AppointmentUpdateResponse;
+import com.gdghajithon.appointment.dto.UpcomingAppointmentResponse;
 import com.gdghajithon.global.security.AuthenticatedUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -50,6 +51,14 @@ public class AppointmentController {
             @PathVariable Long friendId
     ) {
         return appointmentService.getAppointments(authenticatedUser.userId(), friendId);
+    }
+
+    @Operation(summary = "내 예정 약속 조회")
+    @GetMapping("/appointments")
+    public List<UpcomingAppointmentResponse> getUpcomingAppointments(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser
+    ) {
+        return appointmentService.getUpcomingAppointments(authenticatedUser.userId());
     }
 
     @Operation(summary = "약속 수정")
