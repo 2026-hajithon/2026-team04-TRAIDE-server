@@ -6,6 +6,7 @@ import com.gdghajithon.friend.dto.FriendItemResponse;
 import com.gdghajithon.friend.dto.FriendListResponse;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
+import com.gdghajithon.image.ImageUrlResolver;
 import com.gdghajithon.profile.Profile;
 import com.gdghajithon.profile.ProfileRepository;
 import com.gdghajithon.user.UserRepository;
@@ -26,6 +27,7 @@ public class FriendService {
     private final FriendshipRepository friendshipRepository;
     private final ProfileRepository profileRepository;
     private final AppointmentRepository appointmentRepository;
+    private final ImageUrlResolver imageUrlResolver;
 
     @Transactional(readOnly = true)
     public void validateFriend(Long userId, Long targetUserId) {
@@ -70,6 +72,7 @@ public class FriendService {
                     }
                     return FriendItemResponse.from(
                             profile,
+                            imageUrlResolver.resolve(profile.getSport().getImageUrl()),
                             appointmentCounts.getOrDefault(friendId, 0L),
                             createChatRoomId(currentUserId, friendId)
                     );

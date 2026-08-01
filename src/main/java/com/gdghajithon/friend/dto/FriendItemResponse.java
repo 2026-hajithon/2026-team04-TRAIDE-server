@@ -15,6 +15,7 @@ public record FriendItemResponse(
 ) {
     public static FriendItemResponse from(
             Profile profile,
+            String imageUrl,
             long appointmentCount,
             String chatRoomId
     ) {
@@ -23,7 +24,7 @@ public record FriendItemResponse(
                 profile.getName(),
                 SportSummaryResponse.from(profile.getSport()),
                 RegionSummaryResponse.from(profile.getRegion()),
-                null,
+                imageUrl,
                 appointmentCount,
                 chatRoomId
         );

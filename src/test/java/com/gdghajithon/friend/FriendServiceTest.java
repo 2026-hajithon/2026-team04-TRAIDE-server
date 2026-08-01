@@ -12,6 +12,7 @@ import com.gdghajithon.friendrequest.dto.FriendRequestCreateResponse;
 import com.gdghajithon.friendrequest.dto.FriendRequestRespondRequest;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
+import com.gdghajithon.image.ImageUrlResolver;
 import com.gdghajithon.profile.ExerciseLevel;
 import com.gdghajithon.profile.Gender;
 import com.gdghajithon.profile.Profile;
@@ -43,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({FriendService.class, FriendRequestService.class})
+@Import({FriendService.class, FriendRequestService.class, ImageUrlResolver.class})
 class FriendServiceTest {
 
     @Autowired
@@ -141,7 +142,8 @@ class FriendServiceTest {
         assertThat(response.items().get(0).name()).isEqualTo("이서연");
         assertThat(response.items().get(0).sport().name()).isEqualTo("테니스");
         assertThat(response.items().get(0).region().name()).isEqualTo("강남구");
-        assertThat(response.items().get(0).imageUrl()).isNull();
+        assertThat(response.items().get(0).imageUrl())
+                .isEqualTo("/images/sports/tennis.png");
         assertThat(response.items().get(0).appointmentCount()).isEqualTo(2);
         assertThat(response.items().get(0).chatRoomId())
                 .isEqualTo(Math.min(current.getId(), friend.getId()) + "_"
@@ -281,6 +283,7 @@ class FriendServiceTest {
     private Sport saveSport(String name) {
         Sport entity = BeanUtils.instantiateClass(Sport.class);
         ReflectionTestUtils.setField(entity, "name", name);
+        ReflectionTestUtils.setField(entity, "imageUrl", "/images/sports/tennis.png");
         return sportRepository.saveAndFlush(entity);
     }
 

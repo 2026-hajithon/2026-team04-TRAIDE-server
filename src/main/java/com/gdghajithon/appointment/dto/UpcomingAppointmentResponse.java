@@ -1,6 +1,7 @@
 package com.gdghajithon.appointment.dto;
 
 import com.gdghajithon.appointment.Appointment;
+import com.gdghajithon.profile.Profile;
 import com.gdghajithon.user.User;
 
 import java.time.LocalDateTime;
@@ -13,14 +14,19 @@ public record UpcomingAppointmentResponse(
         FriendResponse friend
 ) {
 
-    public static UpcomingAppointmentResponse from(Appointment appointment, Long userId) {
+    public static UpcomingAppointmentResponse from(
+            Appointment appointment,
+            Long userId,
+            Profile friendProfile,
+            String imageUrl
+    ) {
         User friend = appointment.getOtherParticipant(userId);
         return new UpcomingAppointmentResponse(
                 appointment.getId(),
                 appointment.getDateTime(),
                 appointment.getPlace(),
                 appointment.getCoach().getId(),
-                new FriendResponse(friend.getId(), null, null)
+                new FriendResponse(friend.getId(), friendProfile.getName(), imageUrl)
         );
     }
 

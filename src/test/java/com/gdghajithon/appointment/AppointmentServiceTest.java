@@ -7,13 +7,24 @@ import com.gdghajithon.friend.Friendship;
 import com.gdghajithon.friend.FriendshipRepository;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
+import com.gdghajithon.image.ImageUrlResolver;
+import com.gdghajithon.profile.ExerciseLevel;
+import com.gdghajithon.profile.Gender;
+import com.gdghajithon.profile.Profile;
+import com.gdghajithon.profile.ProfileRepository;
+import com.gdghajithon.region.Region;
+import com.gdghajithon.region.RegionRepository;
+import com.gdghajithon.sport.Sport;
+import com.gdghajithon.sport.SportRepository;
 import com.gdghajithon.user.User;
 import com.gdghajithon.user.UserRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 
@@ -22,7 +33,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({AppointmentService.class, AppointmentQueryService.class, FriendService.class})
+@Import({
+        AppointmentService.class,
+        AppointmentQueryService.class,
+        FriendService.class,
+        ImageUrlResolver.class
+})
 class AppointmentServiceTest {
 
     @Autowired
@@ -39,6 +55,15 @@ class AppointmentServiceTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ProfileRepository profileRepository;
+
+    @Autowired
+    private SportRepository sportRepository;
+
+    @Autowired
+    private RegionRepository regionRepository;
 
     @Test
     void friendCanCreateAppointmentAndBothUsersCanViewIt() {
@@ -255,6 +280,7 @@ class AppointmentServiceTest {
     void upcomingAppointmentsReturnOnlyFutureAppointmentsInDateOrder() {
         User creator = saveUser("creator");
         User friend = saveUser("friend");
+        saveProfile(friend, "운동 친구");
         saveFriendship(creator, friend);
         appointmentRepository.save(Appointment.create(
                 creator,
@@ -274,9 +300,13 @@ class AppointmentServiceTest {
                 new AppointmentCreateRequest(futureDateTime(), null, friend.getId())
         ).id();
 
-        assertThat(appointmentService.getUpcomingAppointments(creator.getId()))
+        var responses = appointmentService.getUpcomingAppointments(creator.getId());
+        assertThat(responses)
                 .extracting("id")
                 .containsExactly(earlierId, laterId);
+        assertThat(responses.get(0).friend().name()).isEqualTo("운동 친구");
+        assertThat(responses.get(0).friend().imageUrl())
+                .isEqualTo("/images/sports/tennis.png");
     }
 
     @Test
@@ -301,6 +331,27 @@ class AppointmentServiceTest {
 
     private void saveFriendship(User first, User second) {
         friendshipRepository.save(Friendship.create(first, second));
+    }
+
+    private void saveProfile(User user, String name) {
+        Sport sport = BeanUtils.instantiateClass(Sport.class);
+        ReflectionTestUtils.setField(sport, "name", "테니스");
+        ReflectionTestUtils.setField(sport, "imageUrl", "/images/sports/tennis.png");
+        sport = sportRepository.save(sport);
+
+        Region region = BeanUtils.instantiateClass(Region.class);
+        ReflectionTestUtils.setField(region, "name", "강남구");
+        region = regionRepository.save(region);
+
+        profileRepository.save(Profile.create(
+                user,
+                name,
+                25,
+                Gender.FEMALE,
+                sport,
+                ExerciseLevel.INTERMEDIATE,
+                region
+        ));
     }
 
     private LocalDateTime futureDateTime() {

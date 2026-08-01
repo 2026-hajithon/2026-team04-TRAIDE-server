@@ -58,7 +58,7 @@ class FriendControllerTest {
                         "이서연",
                         new SportSummaryResponse(6L, "테니스"),
                         new RegionSummaryResponse(1L, "강남구"),
-                        null,
+                        "http://localhost:8080/images/sports/tennis.png",
                         5L,
                         "1_2"
                 ))));
@@ -72,7 +72,8 @@ class FriendControllerTest {
                 .andExpect(jsonPath("$.items[0].sport.name").value("테니스"))
                 .andExpect(jsonPath("$.items[0].region.id").value(1))
                 .andExpect(jsonPath("$.items[0].region.name").value("강남구"))
-                .andExpect(jsonPath("$.items[0].imageUrl").isEmpty())
+                .andExpect(jsonPath("$.items[0].imageUrl")
+                        .value("http://localhost:8080/images/sports/tennis.png"))
                 .andExpect(jsonPath("$.items[0].appointmentCount").value(5))
                 .andExpect(jsonPath("$.items[0].chatRoomId").value("1_2"))
                 .andExpect(jsonPath("$.items[0].friendshipId").doesNotExist())

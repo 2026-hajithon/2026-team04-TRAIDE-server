@@ -9,6 +9,9 @@ import com.gdghajithon.appointment.dto.UpcomingAppointmentResponse;
 import com.gdghajithon.friend.FriendService;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
+import com.gdghajithon.image.ImageUrlResolver;
+import com.gdghajithon.profile.Profile;
+import com.gdghajithon.profile.ProfileRepository;
 import com.gdghajithon.user.User;
 import com.gdghajithon.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,8 @@ public class AppointmentService {
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
     private final FriendService friendService;
+    private final ProfileRepository profileRepository;
+    private final ImageUrlResolver imageUrlResolver;
 
     @Transactional
     public AppointmentCreateResponse create(
@@ -64,7 +69,14 @@ public class AppointmentService {
         getUser(userId);
         return appointmentRepository.findUpcomingByUserId(userId, LocalDateTime.now())
                 .stream()
-                .map(appointment -> UpcomingAppointmentResponse.from(appointment, userId))
+                .map(appointment -> {
+                    User friend = appointment.getOtherParticipant(userId);
+                    Profile friendProfile = getProfile(friend.getId());
+                    String imageUrl = imageUrlResolver.resolve(
+                            friendProfile.getSport().getImageUrl());
+                    return UpcomingAppointmentResponse.from(
+                            appointment, userId, friendProfile, imageUrl);
+                })
                 .toList();
     }
 
@@ -107,6 +119,11 @@ public class AppointmentService {
     private Appointment getAppointment(Long appointmentId) {
         return appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.APPOINTMENT_NOT_FOUND));
+    }
+
+    private Profile getProfile(Long userId) {
+        return profileRepository.findWithAssociationsByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROFILE_NOT_FOUND));
     }
 
     private void validateParticipant(Appointment appointment, Long userId) {
