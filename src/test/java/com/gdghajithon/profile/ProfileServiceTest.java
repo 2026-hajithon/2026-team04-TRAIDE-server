@@ -13,6 +13,9 @@ import com.gdghajithon.profile.dto.UserDetailResponse;
 import com.gdghajithon.profile.dto.UserRecommendationListResponse;
 import com.gdghajithon.region.Region;
 import com.gdghajithon.region.RegionRepository;
+import com.gdghajithon.review.Review;
+import com.gdghajithon.review.ReviewQueryService;
+import com.gdghajithon.review.ReviewRepository;
 import com.gdghajithon.sport.Sport;
 import com.gdghajithon.sport.SportRepository;
 import com.gdghajithon.user.User;
@@ -34,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import(ProfileService.class)
+@Import({ProfileService.class, ReviewQueryService.class})
 class ProfileServiceTest {
 
     @Autowired private ProfileService profileService;
@@ -44,6 +47,7 @@ class ProfileServiceTest {
     @Autowired private RegionRepository regionRepository;
     @Autowired private FriendshipRepository friendshipRepository;
     @Autowired private AppointmentRepository appointmentRepository;
+    @Autowired private ReviewRepository reviewRepository;
 
     private User currentUser;
     private Sport sport;
@@ -118,6 +122,19 @@ class ProfileServiceTest {
         assertThat(response.region().name()).isEqualTo("강남구");
         assertThat(response.averageRating()).isNull();
         assertThat(response.reviewCount()).isZero();
+    }
+
+    @Test
+    void profileReturnsAverageRatingAndReviewCount() {
+        saveProfile(currentUser, "현재");
+        User writer = saveUser("writer");
+        reviewRepository.save(Review.create(writer, currentUser, 4, null, null));
+        reviewRepository.saveAndFlush(Review.create(writer, currentUser, 5, null, null));
+
+        MyProfileResponse response = profileService.getMyProfile(currentUser.getId());
+
+        assertThat(response.averageRating()).isEqualTo(4.5);
+        assertThat(response.reviewCount()).isEqualTo(2);
     }
 
     @Test
