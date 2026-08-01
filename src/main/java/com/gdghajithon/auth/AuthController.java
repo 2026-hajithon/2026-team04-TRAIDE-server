@@ -31,8 +31,7 @@ public class AuthController {
             {
               "userId": 1,
               "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
-              "tokenType": "Bearer",
-              "expiresInSeconds": 3600
+              "firebaseToken": "eyJhbGciOiJSUzI1NiJ9..."
             }
             """;
 
@@ -47,7 +46,7 @@ public class AuthController {
 
     @Operation(
             summary = "회원가입",
-            description = "아이디와 비밀번호로 User 계정만 생성하고 JWT Access Token을 발급합니다."
+            description = "아이디와 비밀번호로 User 계정을 생성하고 JWT와 Firebase 커스텀 토큰을 발급합니다."
     )
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,
@@ -74,7 +73,7 @@ public class AuthController {
 
     @Operation(
             summary = "로그인",
-            description = "아이디와 비밀번호를 검증하고 JWT Access Token을 발급합니다."
+            description = "아이디와 비밀번호를 검증하고 JWT와 Firebase 커스텀 토큰을 발급합니다."
     )
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             required = true,

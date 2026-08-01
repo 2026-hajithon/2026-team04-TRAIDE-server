@@ -5,7 +5,7 @@ import com.gdghajithon.auth.dto.LoginRequest;
 import com.gdghajithon.auth.dto.SignupRequest;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
-import com.gdghajithon.global.security.JwtProperties;
+import com.gdghajithon.global.firebase.FirebaseTokenService;
 import com.gdghajithon.global.security.JwtTokenProvider;
 import com.gdghajithon.user.User;
 import com.gdghajithon.user.UserRepository;
@@ -18,12 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private static final String TOKEN_TYPE = "Bearer";
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final JwtProperties jwtProperties;
+    private final FirebaseTokenService firebaseTokenService;
 
     @Transactional
     public AuthResponse signup(SignupRequest request) {
@@ -52,8 +50,7 @@ public class AuthService {
         return new AuthResponse(
                 user.getId(),
                 jwtTokenProvider.createToken(user.getId()),
-                TOKEN_TYPE,
-                jwtProperties.expirationSeconds()
+                firebaseTokenService.createToken(user.getId())
         );
     }
 }
