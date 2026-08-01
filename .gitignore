@@ -29,6 +29,10 @@ out/
 ### Uploaded files ###
 uploads/
 
+### Firebase credentials ###
+**/serviceAccountKey.json
+**/*firebase-adminsdk*.json
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
