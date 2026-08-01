@@ -8,6 +8,7 @@ public record AppointmentListResponse(
         Long id,
         LocalDateTime dateTime,
         String place,
+        Long coachId,
         Long createdBy
 ) {
 
@@ -16,6 +17,7 @@ public record AppointmentListResponse(
                 appointment.getId(),
                 appointment.getDateTime(),
                 appointment.getPlace(),
+                appointment.getCoach().getId(),
                 appointment.getCreator().getId()
         );
     }

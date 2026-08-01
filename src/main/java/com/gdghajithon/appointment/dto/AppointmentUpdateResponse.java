@@ -7,14 +7,16 @@ import java.time.LocalDateTime;
 public record AppointmentUpdateResponse(
         Long id,
         LocalDateTime dateTime,
-        String place
+        String place,
+        Long coachId
 ) {
 
     public static AppointmentUpdateResponse from(Appointment appointment) {
         return new AppointmentUpdateResponse(
                 appointment.getId(),
                 appointment.getDateTime(),
-                appointment.getPlace()
+                appointment.getPlace(),
+                appointment.getCoach().getId()
         );
     }
 }
