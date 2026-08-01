@@ -8,6 +8,10 @@ import com.gdghajithon.profile.dto.UserDetailResponse;
 import com.gdghajithon.profile.dto.UserRecommendationListResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.Explode;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -108,9 +112,27 @@ public class ProfileController {
     @GetMapping("/recommendations")
     public UserRecommendationListResponse getRecommendations(
             @AuthenticationPrincipal AuthenticatedUser authenticatedUser,
-            @Parameter(description = "운동 ID 목록", example = "2,3")
+            @Parameter(
+                    name = "sportIds",
+                    description = "운동 ID 목록 (쉼표로 구분)",
+                    in = ParameterIn.QUERY,
+                    required = false,
+                    style = ParameterStyle.FORM,
+                    explode = Explode.FALSE,
+                    example = "[2,3]",
+                    array = @ArraySchema(items = @Schema(type = "integer", format = "int64"))
+            )
             @RequestParam(required = false) List<Long> sportIds,
-            @Parameter(description = "지역 ID 목록", example = "1,19")
+            @Parameter(
+                    name = "regionIds",
+                    description = "지역 ID 목록 (쉼표로 구분)",
+                    in = ParameterIn.QUERY,
+                    required = false,
+                    style = ParameterStyle.FORM,
+                    explode = Explode.FALSE,
+                    example = "[1,19]",
+                    array = @ArraySchema(items = @Schema(type = "integer", format = "int64"))
+            )
             @RequestParam(required = false) List<Long> regionIds
     ) {
         return profileService.getRecommendations(authenticatedUser.userId(), sportIds, regionIds);
