@@ -243,9 +243,9 @@ class ProfileServiceTest {
         User other = saveUser("other");
         saveProfile(target, "대상");
         appointmentRepository.save(Appointment.create(
-                target, currentUser, LocalDateTime.now().minusDays(1), "과거"));
+                target, currentUser, target, LocalDateTime.now().minusDays(1), "과거"));
         appointmentRepository.save(Appointment.create(
-                other, target, LocalDateTime.now().plusDays(1), "미래"));
+                other, target, target, LocalDateTime.now().plusDays(1), "미래"));
 
         UserDetailResponse response =
                 profileService.getUserDetail(currentUser.getId(), target.getId());

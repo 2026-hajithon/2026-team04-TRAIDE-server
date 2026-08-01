@@ -26,11 +26,11 @@ class AppointmentRepositoryTest {
         User unrelated = saveUser("unrelated");
 
         appointmentRepository.save(Appointment.create(
-                target, first, LocalDateTime.now().minusDays(1), "과거 약속"));
+                target, first, target, LocalDateTime.now().minusDays(1), "과거 약속"));
         appointmentRepository.save(Appointment.create(
-                second, target, LocalDateTime.now().plusDays(1), "미래 약속"));
+                second, target, target, LocalDateTime.now().plusDays(1), "미래 약속"));
         appointmentRepository.save(Appointment.create(
-                first, unrelated, LocalDateTime.now(), "무관한 약속"));
+                first, unrelated, first, LocalDateTime.now(), "무관한 약속"));
         appointmentRepository.flush();
 
         assertThat(appointmentRepository.countByUserId(target.getId())).isEqualTo(2);
