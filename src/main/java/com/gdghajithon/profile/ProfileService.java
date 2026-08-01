@@ -14,6 +14,8 @@ import com.gdghajithon.profile.dto.UserRecommendationListResponse;
 import com.gdghajithon.profile.dto.UserRecommendationResponse;
 import com.gdghajithon.region.Region;
 import com.gdghajithon.region.RegionRepository;
+import com.gdghajithon.review.ReviewQueryService;
+import com.gdghajithon.review.ReviewStats;
 import com.gdghajithon.sport.Sport;
 import com.gdghajithon.sport.SportRepository;
 import com.gdghajithon.user.User;
@@ -33,9 +35,6 @@ import java.util.List;
 public class ProfileService {
 
     private static final int RECOMMENDATION_LIMIT = 10;
-    private static final Double DEFAULT_AVERAGE_RATING = null;
-    private static final long DEFAULT_REVIEW_COUNT = 0L;
-
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
     private final SportRepository sportRepository;
@@ -43,6 +42,7 @@ public class ProfileService {
     private final FriendshipRepository friendshipRepository;
     private final FriendRequestRepository friendRequestRepository;
     private final AppointmentRepository appointmentRepository;
+    private final ReviewQueryService reviewQueryService;
 
     @Transactional
     public MyProfileResponse create(Long userId, ProfileCreateRequest request) {
@@ -94,14 +94,15 @@ public class ProfileService {
         Profile profile = getProfile(targetUserId);
         long friendCount = friendshipRepository.countByUserId(targetUserId);
         long appointmentCount = appointmentRepository.countByUserId(targetUserId);
+        ReviewStats reviewStats = reviewQueryService.getStats(targetUserId);
 
         if (currentUserId.equals(targetUserId)) {
             return UserDetailResponse.from(
                     profile,
                     friendCount,
                     appointmentCount,
-                    DEFAULT_AVERAGE_RATING,
-                    DEFAULT_REVIEW_COUNT,
+                    reviewStats.averageRating(),
+                    reviewStats.reviewCount(),
                     FriendStatus.NONE,
                     null
             );
@@ -129,8 +130,8 @@ public class ProfileService {
                 profile,
                 friendCount,
                 appointmentCount,
-                DEFAULT_AVERAGE_RATING,
-                DEFAULT_REVIEW_COUNT,
+                reviewStats.averageRating(),
+                reviewStats.reviewCount(),
                 status,
                 friendSinceDays
         );
@@ -174,12 +175,13 @@ public class ProfileService {
 
     private MyProfileResponse toMyProfileResponse(Profile profile) {
         Long userId = profile.getUser().getId();
+        ReviewStats reviewStats = reviewQueryService.getStats(userId);
         return MyProfileResponse.from(
                 profile,
                 friendshipRepository.countByUserId(userId),
                 appointmentRepository.countByUserId(userId),
-                DEFAULT_AVERAGE_RATING,
-                DEFAULT_REVIEW_COUNT
+                reviewStats.averageRating(),
+                reviewStats.reviewCount()
         );
     }
 
@@ -206,10 +208,11 @@ public class ProfileService {
             if (recommendations.size() == RECOMMENDATION_LIMIT) {
                 return;
             }
+            ReviewStats reviewStats = reviewQueryService.getStats(candidate.getUser().getId());
             recommendations.add(UserRecommendationResponse.from(
                     candidate,
-                    DEFAULT_AVERAGE_RATING,
-                    DEFAULT_REVIEW_COUNT
+                    reviewStats.averageRating(),
+                    reviewStats.reviewCount()
             ));
         }
     }

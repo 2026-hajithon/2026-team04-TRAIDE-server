@@ -29,7 +29,10 @@ public enum ErrorCode {
     ALREADY_FRIENDS(HttpStatus.CONFLICT, "이미 친구인 사용자입니다."),
     FRIEND_REQUEST_ALREADY_PENDING(HttpStatus.CONFLICT, "이미 대기 중인 친구 요청이 있습니다."),
     FRIEND_REQUEST_ALREADY_PROCESSED(HttpStatus.CONFLICT, "이미 처리된 친구 요청입니다."),
-    FRIEND_REQUEST_ACCESS_DENIED(HttpStatus.FORBIDDEN, "친구 요청을 처리할 권한이 없습니다.");
+    FRIEND_REQUEST_ACCESS_DENIED(HttpStatus.FORBIDDEN, "친구 요청을 처리할 권한이 없습니다."),
+
+    INVALID_RATING(HttpStatus.BAD_REQUEST, "별점은 1점부터 5점까지 입력할 수 있습니다."),
+    APPOINTMENT_REQUIRED(HttpStatus.FORBIDDEN, "후기를 작성하려면 약속이 한 번 이상 필요합니다.");
 
     private final HttpStatus status;
     private final String message;
