@@ -26,10 +26,10 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
             HttpServletResponse response,
             AccessDeniedException accessDeniedException
     ) throws IOException {
-        ErrorCode errorCode = ErrorCode.INVALID_TOKEN;
+        ErrorCode errorCode = ErrorCode.FORBIDDEN;
         response.setStatus(errorCode.getStatus().value());
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        objectMapper.writeValue(response.getWriter(), ErrorResponse.of(errorCode, request.getRequestURI()));
+        objectMapper.writeValue(response.getWriter(), ErrorResponse.of(errorCode));
     }
 }
