@@ -23,7 +23,9 @@ public enum ErrorCode {
     PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "프로필을 찾을 수 없습니다."),
     PROFILE_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 프로필이 존재합니다."),
     SPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "운동 종목을 찾을 수 없습니다."),
-    REGION_NOT_FOUND(HttpStatus.NOT_FOUND, "지역을 찾을 수 없습니다.");
+    REGION_NOT_FOUND(HttpStatus.NOT_FOUND, "지역을 찾을 수 없습니다."),
+    INVALID_RATING(HttpStatus.BAD_REQUEST, "별점은 1점부터 5점까지 입력할 수 있습니다."),
+    APPOINTMENT_REQUIRED(HttpStatus.FORBIDDEN, "후기를 작성하려면 약속이 한 번 이상 필요합니다.");
 
     private final HttpStatus status;
     private final String message;
