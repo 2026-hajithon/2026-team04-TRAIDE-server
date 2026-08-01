@@ -26,7 +26,7 @@ public class FriendService {
         Long userAId = Math.min(userId, targetUserId);
         Long userBId = Math.max(userId, targetUserId);
         if (!friendshipRepository.existsByUserAIdAndUserBId(userAId, userBId)) {
-            throw new BusinessException(ErrorCode.FRIENDSHIP_REQUIRED);
+            throw new BusinessException(ErrorCode.NOT_FRIEND);
         }
     }
 
