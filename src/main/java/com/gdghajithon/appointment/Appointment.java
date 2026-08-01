@@ -36,10 +36,14 @@ public class Appointment {
     @JoinColumn(name = "friend_id", nullable = false)
     private User friend;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "coach_id", nullable = false)
+    private User coach;
+
     @Column(nullable = false)
     private LocalDateTime dateTime;
 
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String place;
 
     @Column(nullable = false, updatable = false)
@@ -48,9 +52,16 @@ public class Appointment {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    private Appointment(User creator, User friend, LocalDateTime dateTime, String place) {
+    private Appointment(
+            User creator,
+            User friend,
+            User coach,
+            LocalDateTime dateTime,
+            String place
+    ) {
         this.creator = creator;
         this.friend = friend;
+        this.coach = coach;
         this.dateTime = dateTime;
         this.place = place;
     }
@@ -58,23 +69,36 @@ public class Appointment {
     public static Appointment create(
             User creator,
             User friend,
+            User coach,
             LocalDateTime dateTime,
             String place
     ) {
-        return new Appointment(creator, friend, dateTime, place);
+        return new Appointment(creator, friend, coach, dateTime, place);
     }
 
-    public void update(LocalDateTime dateTime, String place) {
+    public void update(
+            LocalDateTime dateTime,
+            String place,
+            boolean placeIncluded,
+            User coach
+    ) {
         if (dateTime != null) {
             this.dateTime = dateTime;
         }
-        if (place != null) {
+        if (placeIncluded) {
             this.place = place;
+        }
+        if (coach != null) {
+            this.coach = coach;
         }
     }
 
     public boolean hasParticipant(Long userId) {
         return creator.getId().equals(userId) || friend.getId().equals(userId);
+    }
+
+    public User getOtherParticipant(Long userId) {
+        return creator.getId().equals(userId) ? friend : creator;
     }
 
     @PrePersist

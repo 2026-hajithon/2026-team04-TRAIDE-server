@@ -8,7 +8,8 @@ public record AppointmentCreateResponse(
         Long id,
         Long friendId,
         LocalDateTime dateTime,
-        String place
+        String place,
+        Long coachId
 ) {
 
     public static AppointmentCreateResponse from(Appointment appointment) {
@@ -16,7 +17,8 @@ public record AppointmentCreateResponse(
                 appointment.getId(),
                 appointment.getFriend().getId(),
                 appointment.getDateTime(),
-                appointment.getPlace()
+                appointment.getPlace(),
+                appointment.getCoach().getId()
         );
     }
 }
