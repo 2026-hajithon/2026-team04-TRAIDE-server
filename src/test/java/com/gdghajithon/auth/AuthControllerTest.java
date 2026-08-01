@@ -43,7 +43,11 @@ class AuthControllerTest {
     @Test
     void signupReturnsCreated() throws Exception {
         when(authService.signup(any(SignupRequest.class)))
-                .thenReturn(new AuthResponse(1L, "access-token", "Bearer", 3600));
+                .thenReturn(new AuthResponse(
+                        1L,
+                        "access-token",
+                        "firebase-token"
+                ));
 
         mockMvc.perform(post("/api/auth/signup")
                         .contentType("application/json")
@@ -51,20 +55,24 @@ class AuthControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.userId").value(1))
                 .andExpect(jsonPath("$.accessToken").value("access-token"))
-                .andExpect(jsonPath("$.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.expiresInSeconds").value(3600));
+                .andExpect(jsonPath("$.firebaseToken").value("firebase-token"));
     }
 
     @Test
     void loginReturnsOk() throws Exception {
         when(authService.login(any(LoginRequest.class)))
-                .thenReturn(new AuthResponse(1L, "access-token", "Bearer", 3600));
+                .thenReturn(new AuthResponse(
+                        1L,
+                        "access-token",
+                        "firebase-token"
+                ));
 
         mockMvc.perform(post("/api/auth/login")
-                        .contentType("application/json")
-                        .content("{\"loginId\":\"user01\",\"password\":\"password123\"}"))
+                .contentType("application/json")
+                .content("{\"loginId\":\"user01\",\"password\":\"password123\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(1));
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.firebaseToken").value("firebase-token"));
     }
 
     @Test

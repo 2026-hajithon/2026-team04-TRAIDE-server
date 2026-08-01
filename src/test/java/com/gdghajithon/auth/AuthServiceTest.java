@@ -5,7 +5,7 @@ import com.gdghajithon.auth.dto.LoginRequest;
 import com.gdghajithon.auth.dto.SignupRequest;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
-import com.gdghajithon.global.security.JwtProperties;
+import com.gdghajithon.global.firebase.FirebaseTokenService;
 import com.gdghajithon.global.security.JwtTokenProvider;
 import com.gdghajithon.user.User;
 import com.gdghajithon.user.UserRepository;
@@ -37,18 +37,20 @@ class AuthServiceTest {
     @Mock
     private JwtTokenProvider jwtTokenProvider;
 
+    @Mock
+    private FirebaseTokenService firebaseTokenService;
+
     private PasswordEncoder passwordEncoder;
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
         passwordEncoder = new BCryptPasswordEncoder();
-        JwtProperties jwtProperties = new JwtProperties("unused-test-secret", 3600);
         authService = new AuthService(
                 userRepository,
                 passwordEncoder,
                 jwtTokenProvider,
-                jwtProperties
+                firebaseTokenService
         );
     }
 
@@ -56,13 +58,13 @@ class AuthServiceTest {
     void signupSucceeds() {
         prepareSignupSave();
         when(jwtTokenProvider.createToken(1L)).thenReturn("access-token");
+        when(firebaseTokenService.createToken(1L)).thenReturn("firebase-token");
 
         AuthResponse response = authService.signup(new SignupRequest("user01", "password123"));
 
         assertThat(response.userId()).isEqualTo(1L);
         assertThat(response.accessToken()).isEqualTo("access-token");
-        assertThat(response.tokenType()).isEqualTo("Bearer");
-        assertThat(response.expiresInSeconds()).isEqualTo(3600);
+        assertThat(response.firebaseToken()).isEqualTo("firebase-token");
     }
 
     @Test
@@ -101,10 +103,12 @@ class AuthServiceTest {
         User user = persistedUser("user01", passwordEncoder.encode("password123"), 1L);
         when(userRepository.findByLoginId("user01")).thenReturn(Optional.of(user));
         when(jwtTokenProvider.createToken(1L)).thenReturn("access-token");
+        when(firebaseTokenService.createToken(1L)).thenReturn("firebase-token");
 
         AuthResponse response = authService.login(new LoginRequest("user01", "password123"));
 
         assertThat(response.accessToken()).isEqualTo("access-token");
+        assertThat(response.firebaseToken()).isEqualTo("firebase-token");
         verify(jwtTokenProvider).createToken(1L);
     }
 
