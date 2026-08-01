@@ -11,7 +11,10 @@ public enum ErrorCode {
     CANNOT_FRIEND_SELF(HttpStatus.BAD_REQUEST, "자기 자신과 친구 관계를 맺을 수 없습니다."),
     NOT_FRIEND(HttpStatus.FORBIDDEN, "친구가 아닙니다."),
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
-    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다.");
+    EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다."),
+    LOGIN_ID_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 사용 중인 아이디입니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "아이디 또는 비밀번호가 올바르지 않습니다."),
+    VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "입력값을 확인해주세요.");
 
     private final HttpStatus status;
     private final String message;
