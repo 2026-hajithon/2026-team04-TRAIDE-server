@@ -19,7 +19,11 @@ public enum ErrorCode {
     INVALID_IMAGE(HttpStatus.BAD_REQUEST, "JPEG 또는 PNG 이미지만 업로드할 수 있습니다."),
     IMAGE_TOO_LARGE(HttpStatus.CONTENT_TOO_LARGE, "이미지는 최대 5MB까지 업로드할 수 있습니다."),
     IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 저장에 실패했습니다."),
-    VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "입력값을 확인해주세요.");
+    VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "입력값을 확인해주세요."),
+    PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "프로필을 찾을 수 없습니다."),
+    PROFILE_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 프로필이 존재합니다."),
+    SPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "운동 종목을 찾을 수 없습니다."),
+    REGION_NOT_FOUND(HttpStatus.NOT_FOUND, "지역을 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;
