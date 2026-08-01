@@ -110,13 +110,34 @@ public class Profile {
             ExerciseLevel exerciseLevel,
             Region region
     ) {
-        this.name = name;
-        this.age = age;
-        this.gender = gender;
-        this.sport = sport;
-        this.exerciseLevel = exerciseLevel;
-        this.region = region;
-        this.updatedAt = LocalDateTime.now();
+        boolean changed = false;
+        if (name != null) {
+            this.name = name;
+            changed = true;
+        }
+        if (age != null) {
+            this.age = age;
+            changed = true;
+        }
+        if (gender != null) {
+            this.gender = gender;
+            changed = true;
+        }
+        if (sport != null) {
+            this.sport = sport;
+            changed = true;
+        }
+        if (exerciseLevel != null) {
+            this.exerciseLevel = exerciseLevel;
+            changed = true;
+        }
+        if (region != null) {
+            this.region = region;
+            changed = true;
+        }
+        if (changed) {
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
     @PrePersist

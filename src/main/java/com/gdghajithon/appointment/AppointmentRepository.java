@@ -9,6 +9,14 @@ import java.util.List;
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
     @Query("""
+            SELECT COUNT(appointment)
+            FROM Appointment appointment
+            WHERE appointment.creator.id = :userId
+               OR appointment.friend.id = :userId
+            """)
+    long countByUserId(@Param("userId") Long userId);
+
+    @Query("""
             SELECT appointment
             FROM Appointment appointment
             WHERE (appointment.creator.id = :userId AND appointment.friend.id = :friendId)

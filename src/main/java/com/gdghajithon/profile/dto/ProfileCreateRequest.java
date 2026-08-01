@@ -29,7 +29,7 @@ public record ProfileCreateRequest(
 
         @NotNull
         @Schema(example = "INTERMEDIATE")
-        ExerciseLevel exerciseLevel,
+        ExerciseLevel level,
 
         @NotNull @Positive
         @Schema(example = "5")

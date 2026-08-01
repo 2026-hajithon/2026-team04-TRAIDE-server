@@ -4,7 +4,10 @@ import com.gdghajithon.global.security.JwtTokenProvider;
 import com.gdghajithon.profile.dto.MyProfileResponse;
 import com.gdghajithon.profile.dto.ProfileCreateRequest;
 import com.gdghajithon.profile.dto.ProfileUpdateRequest;
+import com.gdghajithon.profile.dto.RegionSummaryResponse;
+import com.gdghajithon.profile.dto.SportSummaryResponse;
 import com.gdghajithon.profile.dto.UserDetailResponse;
+import com.gdghajithon.profile.dto.UserRecommendationListResponse;
 import com.gdghajithon.profile.dto.UserRecommendationResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +24,6 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -65,8 +67,16 @@ class ProfileControllerTest {
                         .contentType("application/json")
                         .content(validRequestJson()))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.userId").value(1))
-                .andExpect(jsonPath("$.name").value("사용자"));
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.userId").doesNotExist())
+                .andExpect(jsonPath("$.name").value("사용자"))
+                .andExpect(jsonPath("$.sport.id").value(1))
+                .andExpect(jsonPath("$.sport.name").value("러닝"))
+                .andExpect(jsonPath("$.level").value("INTERMEDIATE"))
+                .andExpect(jsonPath("$.exerciseLevel").doesNotExist())
+                .andExpect(jsonPath("$.region.id").value(1))
+                .andExpect(jsonPath("$.averageRating").isEmpty())
+                .andExpect(jsonPath("$.reviewCount").value(0));
     }
 
     @Test
@@ -89,7 +99,32 @@ class ProfileControllerTest {
                         .contentType("application/json")
                         .content(validRequestJson()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.sportName").value("러닝"));
+                .andExpect(jsonPath("$.sport.name").value("러닝"));
+    }
+
+    @Test
+    void emptyPatchReturnsOk() throws Exception {
+        when(profileService.update(anyLong(), any(ProfileUpdateRequest.class)))
+                .thenReturn(myProfileResponse());
+
+        mockMvc.perform(patch("/api/users/me")
+                        .header(HttpHeaders.AUTHORIZATION, authorization)
+                        .contentType("application/json")
+                        .content("{}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("사용자"));
+    }
+
+    @Test
+    void patchRejectsBlankNameWhenProvided() throws Exception {
+        mockMvc.perform(patch("/api/users/me")
+                        .header(HttpHeaders.AUTHORIZATION, authorization)
+                        .contentType("application/json")
+                        .content("""
+                                {"name":"   "}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 
     @Test
@@ -99,20 +134,28 @@ class ProfileControllerTest {
         mockMvc.perform(get("/api/users/2")
                         .header(HttpHeaders.AUTHORIZATION, authorization))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.userId").value(2))
-                .andExpect(jsonPath("$.friendStatus").value("NONE"));
+                .andExpect(jsonPath("$.id").value(2))
+                .andExpect(jsonPath("$.friendStatus").value("NONE"))
+                .andExpect(jsonPath("$.friendSinceDays").isEmpty())
+                .andExpect(jsonPath("$.friendshipId").doesNotExist())
+                .andExpect(jsonPath("$.friendSince").doesNotExist())
+                .andExpect(jsonPath("$.relationship").doesNotExist());
     }
 
     @Test
     void recommendationsPathDoesNotConflictWithUserIdPath() throws Exception {
-        when(profileService.getRecommendations(1L, null, null))
-                .thenReturn(List.of(recommendationResponse()));
+        when(profileService.getRecommendations(1L, List.of(1L, 2L), List.of(3L, 4L)))
+                .thenReturn(UserRecommendationListResponse.of(List.of(recommendationResponse())));
 
         mockMvc.perform(get("/api/users/recommendations")
+                        .queryParam("sportIds", "1,2")
+                        .queryParam("regionIds", "3,4")
                         .header(HttpHeaders.AUTHORIZATION, authorization))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].userId").value(2));
-        verify(profileService).getRecommendations(1L, null, null);
+                .andExpect(jsonPath("$.items[0].id").value(2))
+                .andExpect(jsonPath("$.items[0].averageRating").isEmpty())
+                .andExpect(jsonPath("$.items[0].reviewCount").value(0));
+        verify(profileService).getRecommendations(1L, List.of(1L, 2L), List.of(3L, 4L));
     }
 
     @Test
@@ -136,7 +179,7 @@ class ProfileControllerTest {
                                   "age":25,
                                   "gender":"UNKNOWN",
                                   "sportId":1,
-                                  "exerciseLevel":"INTERMEDIATE",
+                                  "level":"INTERMEDIATE",
                                   "regionId":1
                                 }
                                 """))
@@ -152,7 +195,7 @@ class ProfileControllerTest {
                   "age":25,
                   "gender":"MALE",
                   "sportId":1,
-                  "exerciseLevel":"INTERMEDIATE",
+                  "level":"INTERMEDIATE",
                   "regionId":1
                 }
                 """;
@@ -162,21 +205,23 @@ class ProfileControllerTest {
         LocalDateTime now = LocalDateTime.of(2026, 8, 1, 12, 0);
         return new MyProfileResponse(
                 1L, "user01", "사용자", 25, Gender.MALE,
-                1L, "러닝", ExerciseLevel.INTERMEDIATE,
-                1L, "강남구", 0, now, now);
+                new SportSummaryResponse(1L, "러닝"), ExerciseLevel.INTERMEDIATE,
+                new RegionSummaryResponse(1L, "강남구"),
+                0, 0, null, 0, now, now);
     }
 
     private UserDetailResponse userDetailResponse() {
         return new UserDetailResponse(
                 2L, "상대", 26, Gender.FEMALE,
-                1L, "러닝", ExerciseLevel.BEGINNER,
-                1L, "강남구", 0, FriendStatus.NONE, null, null);
+                new SportSummaryResponse(1L, "러닝"), ExerciseLevel.BEGINNER,
+                new RegionSummaryResponse(1L, "강남구"),
+                0, 0, null, 0, FriendStatus.NONE, null);
     }
 
     private UserRecommendationResponse recommendationResponse() {
         return new UserRecommendationResponse(
                 2L, "추천", 27, Gender.FEMALE,
-                1L, "러닝", ExerciseLevel.INTERMEDIATE,
-                1L, "강남구");
+                new SportSummaryResponse(1L, "러닝"), ExerciseLevel.INTERMEDIATE,
+                new RegionSummaryResponse(1L, "강남구"), null, 0);
     }
 }

@@ -1,6 +1,5 @@
 package com.gdghajithon.profile;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,8 +25,8 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
             JOIN FETCH profile.sport sport
             JOIN FETCH profile.region region
             WHERE candidate.id <> :currentUserId
-              AND (:sportId IS NULL OR sport.id = :sportId)
-              AND (:regionId IS NULL OR region.id = :regionId)
+              AND (:filterBySport = false OR sport.id IN :sportIds)
+              AND (:filterByRegion = false OR region.id IN :regionIds)
               AND NOT EXISTS (
                   SELECT friendship.id
                   FROM Friendship friendship
@@ -36,12 +35,12 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
                      OR (friendship.userA.id = candidate.id
                          AND friendship.userB.id = :currentUserId)
               )
-            ORDER BY candidate.id ASC
             """)
-    List<Profile> findRecommendations(
+    List<Profile> findRecommendationCandidates(
             @Param("currentUserId") Long currentUserId,
-            @Param("sportId") Long sportId,
-            @Param("regionId") Long regionId,
-            Pageable pageable
+            @Param("filterBySport") boolean filterBySport,
+            @Param("sportIds") List<Long> sportIds,
+            @Param("filterByRegion") boolean filterByRegion,
+            @Param("regionIds") List<Long> regionIds
     );
 }

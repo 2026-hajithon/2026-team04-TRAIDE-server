@@ -3,29 +3,36 @@ package com.gdghajithon.profile.dto;
 import com.gdghajithon.profile.ExerciseLevel;
 import com.gdghajithon.profile.Gender;
 import com.gdghajithon.profile.Profile;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public record UserRecommendationResponse(
-        Long userId,
+        Long id,
         String name,
         Integer age,
         Gender gender,
-        Long sportId,
-        String sportName,
-        ExerciseLevel exerciseLevel,
-        Long regionId,
-        String regionName
+        SportSummaryResponse sport,
+        ExerciseLevel level,
+        RegionSummaryResponse region,
+        @Schema(description = "평균 평점. Review 연동 전에는 null", nullable = true, example = "4.8")
+        Double averageRating,
+        @Schema(description = "후기 수. Review 연동 전에는 0", example = "0")
+        long reviewCount
 ) {
-    public static UserRecommendationResponse from(Profile profile) {
+    public static UserRecommendationResponse from(
+            Profile profile,
+            Double averageRating,
+            long reviewCount
+    ) {
         return new UserRecommendationResponse(
                 profile.getUser().getId(),
                 profile.getName(),
                 profile.getAge(),
                 profile.getGender(),
-                profile.getSport().getId(),
-                profile.getSport().getName(),
+                SportSummaryResponse.from(profile.getSport()),
                 profile.getExerciseLevel(),
-                profile.getRegion().getId(),
-                profile.getRegion().getName()
+                RegionSummaryResponse.from(profile.getRegion()),
+                averageRating,
+                reviewCount
         );
     }
 }

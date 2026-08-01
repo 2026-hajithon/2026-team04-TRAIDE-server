@@ -16,7 +16,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -83,45 +82,56 @@ class ProfileRepositoryTest {
         saveProfile(current, sport, region, "현재");
         saveProfile(candidate, sport, region, "후보");
 
-        List<Profile> result = recommendations(current.getId(), null, null);
+        List<Profile> result = recommendations(current.getId(), List.of(), List.of());
 
         assertThat(result).extracting(profile -> profile.getUser().getId())
                 .containsExactly(candidate.getId());
     }
 
     @Test
-    void recommendationAppliesSportAndRegionFilters() {
+    void recommendationAppliesMultipleSportAndRegionFilters() {
         Sport running = saveSport("러닝");
         Sport soccer = saveSport("축구");
+        Sport tennis = saveSport("테니스");
         Region gangnam = saveRegion("강남구");
         Region mapo = saveRegion("마포구");
+        Region songpa = saveRegion("송파구");
         User current = saveUser("current");
-        User matching = saveUser("matching");
-        User wrongSport = saveUser("wrongSport");
-        User wrongRegion = saveUser("wrongRegion");
+        User runningGangnam = saveUser("runningGangnam");
+        User soccerMapo = saveUser("soccerMapo");
+        User tennisGangnam = saveUser("tennisGangnam");
+        User runningSongpa = saveUser("runningSongpa");
         saveProfile(current, running, gangnam, "현재");
-        saveProfile(matching, running, gangnam, "일치");
-        saveProfile(wrongSport, soccer, gangnam, "운동 불일치");
-        saveProfile(wrongRegion, running, mapo, "지역 불일치");
+        saveProfile(runningGangnam, running, gangnam, "러닝 강남");
+        saveProfile(soccerMapo, soccer, mapo, "축구 마포");
+        saveProfile(tennisGangnam, tennis, gangnam, "테니스 강남");
+        saveProfile(runningSongpa, running, songpa, "러닝 송파");
 
-        List<Profile> result = recommendations(current.getId(), running.getId(), gangnam.getId());
+        List<Profile> result = recommendations(
+                current.getId(),
+                List.of(running.getId(), soccer.getId()),
+                List.of(gangnam.getId(), mapo.getId())
+        );
 
         assertThat(result).extracting(profile -> profile.getUser().getId())
-                .containsExactly(matching.getId());
+                .containsExactlyInAnyOrder(runningGangnam.getId(), soccerMapo.getId());
     }
 
     @Test
-    void recommendationReturnsAtMostTenUsers() {
+    void recommendationAppliesOnlySportFilter() {
         Sport sport = saveSport("러닝");
+        Sport otherSport = saveSport("축구");
         Region region = saveRegion("강남구");
         User current = saveUser("current");
+        User matching = saveUser("matching");
+        User excluded = saveUser("excluded");
         saveProfile(current, sport, region, "현재");
-        for (int index = 0; index < 12; index++) {
-            User candidate = saveUser("candidate" + index);
-            saveProfile(candidate, sport, region, "후보" + index);
-        }
+        saveProfile(matching, sport, region, "일치");
+        saveProfile(excluded, otherSport, region, "제외");
 
-        assertThat(recommendations(current.getId(), null, null)).hasSize(10);
+        assertThat(recommendations(current.getId(), List.of(sport.getId()), List.of()))
+                .extracting(profile -> profile.getUser().getId())
+                .containsExactly(matching.getId());
     }
 
     @Test
@@ -136,14 +146,23 @@ class ProfileRepositoryTest {
         saveProfile(candidate, sport, region, "후보");
         friendshipRepository.saveAndFlush(Friendship.create(current, friend));
 
-        assertThat(recommendations(current.getId(), null, null))
+        assertThat(recommendations(current.getId(), List.of(), List.of()))
                 .extracting(profile -> profile.getUser().getId())
                 .containsExactly(candidate.getId());
     }
 
-    private List<Profile> recommendations(Long userId, Long sportId, Long regionId) {
-        return profileRepository.findRecommendations(
-                userId, sportId, regionId, PageRequest.of(0, 10));
+    private List<Profile> recommendations(
+            Long userId,
+            List<Long> sportIds,
+            List<Long> regionIds
+    ) {
+        return profileRepository.findRecommendationCandidates(
+                userId,
+                !sportIds.isEmpty(),
+                sportIds,
+                !regionIds.isEmpty(),
+                regionIds
+        );
     }
 
     private User saveUser(String loginId) {
