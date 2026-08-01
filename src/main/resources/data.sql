@@ -9,6 +9,16 @@ INSERT IGNORE INTO sport (id, name) VALUES
 (8, '수영'),
 (9, '탁구');
 
+UPDATE sport SET image_url = '/images/sports/fitness.png' WHERE id = 1;
+UPDATE sport SET image_url = '/images/sports/running.png' WHERE id = 2;
+UPDATE sport SET image_url = '/images/sports/soccer.png' WHERE id = 3;
+UPDATE sport SET image_url = '/images/sports/basketball.png' WHERE id = 4;
+UPDATE sport SET image_url = '/images/sports/badminton.png' WHERE id = 5;
+UPDATE sport SET image_url = '/images/sports/tennis.png' WHERE id = 6;
+UPDATE sport SET image_url = '/images/sports/climbing.png' WHERE id = 7;
+UPDATE sport SET image_url = '/images/sports/swimming.png' WHERE id = 8;
+UPDATE sport SET image_url = '/images/sports/table-tennis.png' WHERE id = 9;
+
 INSERT IGNORE INTO region (id, name) VALUES
 (1, '강남구'),
 (2, '강동구'),

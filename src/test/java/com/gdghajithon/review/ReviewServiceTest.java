@@ -8,6 +8,7 @@ import com.gdghajithon.friend.Friendship;
 import com.gdghajithon.friend.FriendshipRepository;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
+import com.gdghajithon.image.ImageUrlResolver;
 import com.gdghajithon.profile.ExerciseLevel;
 import com.gdghajithon.profile.Gender;
 import com.gdghajithon.profile.Profile;
@@ -35,7 +36,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({ReviewService.class, FriendService.class, AppointmentQueryService.class})
+@Import({
+        ReviewService.class,
+        FriendService.class,
+        AppointmentQueryService.class,
+        ImageUrlResolver.class
+})
 class ReviewServiceTest {
 
     @Autowired private ReviewService reviewService;
@@ -137,7 +143,8 @@ class ReviewServiceTest {
                 .containsExactly(latestReview.getId(), oldReview.getId());
         assertThat(responses.get(0).writer().id()).isEqualTo(writer.getId());
         assertThat(responses.get(0).writer().name()).isEqualTo("작성자");
-        assertThat(responses.get(0).writer().imageUrl()).isNull();
+        assertThat(responses.get(0).writer().imageUrl())
+                .isEqualTo("/images/sports/tennis.png");
     }
 
     private ReviewCreateRequest request(Integer rating) {
@@ -166,6 +173,7 @@ class ReviewServiceTest {
     private void saveProfile(User user, String name) {
         Sport sport = BeanUtils.instantiateClass(Sport.class);
         ReflectionTestUtils.setField(sport, "name", "테니스");
+        ReflectionTestUtils.setField(sport, "imageUrl", "/images/sports/tennis.png");
         sport = sportRepository.saveAndFlush(sport);
         Region region = BeanUtils.instantiateClass(Region.class);
         ReflectionTestUtils.setField(region, "name", "양천구");

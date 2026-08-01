@@ -6,6 +6,7 @@ import com.gdghajithon.friend.FriendshipRepository;
 import com.gdghajithon.friendrequest.FriendRequestRepository;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
+import com.gdghajithon.image.ImageUrlResolver;
 import com.gdghajithon.profile.dto.MyProfileResponse;
 import com.gdghajithon.profile.dto.ProfileCreateRequest;
 import com.gdghajithon.profile.dto.ProfileUpdateRequest;
@@ -43,6 +44,7 @@ public class ProfileService {
     private final FriendRequestRepository friendRequestRepository;
     private final AppointmentRepository appointmentRepository;
     private final ReviewQueryService reviewQueryService;
+    private final ImageUrlResolver imageUrlResolver;
 
     @Transactional
     public MyProfileResponse create(Long userId, ProfileCreateRequest request) {
@@ -99,6 +101,7 @@ public class ProfileService {
         if (currentUserId.equals(targetUserId)) {
             return UserDetailResponse.from(
                     profile,
+                    getProfileImageUrl(profile),
                     friendCount,
                     appointmentCount,
                     reviewStats.averageRating(),
@@ -128,6 +131,7 @@ public class ProfileService {
         }
         return UserDetailResponse.from(
                 profile,
+                getProfileImageUrl(profile),
                 friendCount,
                 appointmentCount,
                 reviewStats.averageRating(),
@@ -178,6 +182,7 @@ public class ProfileService {
         ReviewStats reviewStats = reviewQueryService.getStats(userId);
         return MyProfileResponse.from(
                 profile,
+                getProfileImageUrl(profile),
                 friendshipRepository.countByUserId(userId),
                 appointmentRepository.countByUserId(userId),
                 reviewStats.averageRating(),
@@ -211,6 +216,7 @@ public class ProfileService {
             ReviewStats reviewStats = reviewQueryService.getStats(candidate.getUser().getId());
             recommendations.add(UserRecommendationResponse.from(
                     candidate,
+                    getProfileImageUrl(candidate),
                     reviewStats.averageRating(),
                     reviewStats.reviewCount()
             ));
@@ -230,6 +236,10 @@ public class ProfileService {
     private Sport getSport(Long sportId) {
         return sportRepository.findById(sportId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SPORT_NOT_FOUND));
+    }
+
+    private String getProfileImageUrl(Profile profile) {
+        return imageUrlResolver.resolve(profile.getSport().getImageUrl());
     }
 
     private Region getRegion(Long regionId) {

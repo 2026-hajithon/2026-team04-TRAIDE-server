@@ -9,6 +9,7 @@ import com.gdghajithon.friendrequest.FriendRequest;
 import com.gdghajithon.friendrequest.FriendRequestRepository;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
+import com.gdghajithon.image.ImageUrlResolver;
 import com.gdghajithon.profile.dto.MyProfileResponse;
 import com.gdghajithon.profile.dto.ProfileCreateRequest;
 import com.gdghajithon.profile.dto.ProfileUpdateRequest;
@@ -40,7 +41,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({ProfileService.class, ReviewQueryService.class, FriendService.class})
+@Import({
+        ProfileService.class,
+        ReviewQueryService.class,
+        FriendService.class,
+        ImageUrlResolver.class
+})
 class ProfileServiceTest {
 
     @Autowired private ProfileService profileService;
@@ -125,6 +131,7 @@ class ProfileServiceTest {
         assertThat(response.name()).isEqualTo("사용자");
         assertThat(response.sport().name()).isEqualTo("러닝");
         assertThat(response.region().name()).isEqualTo("강남구");
+        assertThat(response.imageUrl()).isEqualTo("/images/sports/default.png");
         assertThat(response.averageRating()).isNull();
         assertThat(response.reviewCount()).isZero();
     }
@@ -398,6 +405,7 @@ class ProfileServiceTest {
     private Sport saveSport(String name) {
         Sport entity = BeanUtils.instantiateClass(Sport.class);
         ReflectionTestUtils.setField(entity, "name", name);
+        ReflectionTestUtils.setField(entity, "imageUrl", "/images/sports/default.png");
         return sportRepository.saveAndFlush(entity);
     }
 

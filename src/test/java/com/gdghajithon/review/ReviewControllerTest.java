@@ -91,7 +91,11 @@ class ReviewControllerTest {
                         "즐거웠어요",
                         null,
                         createdAt,
-                        new ReviewListResponse.WriterResponse(1L, "작성자", null)
+                        new ReviewListResponse.WriterResponse(
+                                1L,
+                                "작성자",
+                                "https://api.example.com/images/sports/running.png"
+                        )
                 )
         ));
 
@@ -101,6 +105,7 @@ class ReviewControllerTest {
                 .andExpect(jsonPath("$[0].id").value(10))
                 .andExpect(jsonPath("$[0].writer.id").value(1))
                 .andExpect(jsonPath("$[0].writer.name").value("작성자"))
-                .andExpect(jsonPath("$[0].writer.imageUrl").isEmpty());
+                .andExpect(jsonPath("$[0].writer.imageUrl")
+                        .value("https://api.example.com/images/sports/running.png"));
     }
 }

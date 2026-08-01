@@ -17,4 +17,7 @@ public class Sport {
 
     @Column(nullable = false, unique = true, length = 30)
     private String name;
+
+    @Column(length = 200)
+    private String imageUrl;
 }
