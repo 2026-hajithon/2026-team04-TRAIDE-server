@@ -39,9 +39,7 @@ public class AuthController {
     private static final String VALIDATION_ERROR_EXAMPLE = """
             {
               "code": "VALIDATION_ERROR",
-              "message": "입력값을 확인해주세요.",
-              "timestamp": "2026-08-01T10:00:00",
-              "path": "/api/auth/signup"
+              "message": "입력값을 확인해주세요."
             }
             """;
 
@@ -66,7 +64,7 @@ public class AuthController {
                     content = @Content(examples = @ExampleObject(value = VALIDATION_ERROR_EXAMPLE))),
             @ApiResponse(responseCode = "409", description = "중복 아이디",
                     content = @Content(examples = @ExampleObject(value = """
-                            {"code":"LOGIN_ID_ALREADY_EXISTS","message":"이미 사용 중인 아이디입니다.","timestamp":"2026-08-01T10:00:00","path":"/api/auth/signup"}
+                            {"code":"LOGIN_ID_ALREADY_EXISTS","message":"이미 사용 중인 아이디입니다."}
                             """)))
     })
     @PostMapping("/signup")
@@ -93,7 +91,7 @@ public class AuthController {
                     content = @Content(examples = @ExampleObject(value = VALIDATION_ERROR_EXAMPLE))),
             @ApiResponse(responseCode = "401", description = "인증 정보 불일치",
                     content = @Content(examples = @ExampleObject(value = """
-                            {"code":"INVALID_CREDENTIALS","message":"아이디 또는 비밀번호가 올바르지 않습니다.","timestamp":"2026-08-01T10:00:00","path":"/api/auth/login"}
+                            {"code":"INVALID_CREDENTIALS","message":"아이디 또는 비밀번호가 올바르지 않습니다."}
                             """)))
     })
     @PostMapping("/login")

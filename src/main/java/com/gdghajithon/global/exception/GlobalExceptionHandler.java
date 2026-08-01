@@ -10,13 +10,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
-            MethodArgumentNotValidException exception,
-            HttpServletRequest request
+            MethodArgumentNotValidException exception
     ) {
         ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
         return ResponseEntity
                 .status(errorCode.getStatus())
-                .body(ErrorResponse.of(errorCode, request.getRequestURI()));
+                .body(ErrorResponse.of(errorCode));
     }
 
     @ExceptionHandler(BusinessException.class)
