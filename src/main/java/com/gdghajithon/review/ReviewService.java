@@ -4,6 +4,7 @@ import com.gdghajithon.appointment.AppointmentQueryService;
 import com.gdghajithon.friend.FriendService;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
+import com.gdghajithon.image.ImageUrlResolver;
 import com.gdghajithon.profile.Profile;
 import com.gdghajithon.profile.ProfileRepository;
 import com.gdghajithon.review.dto.ReviewCreateRequest;
@@ -28,6 +29,7 @@ public class ReviewService {
     private final ProfileRepository profileRepository;
     private final FriendService friendService;
     private final AppointmentQueryService appointmentQueryService;
+    private final ImageUrlResolver imageUrlResolver;
 
     @Transactional
     public ReviewCreateResponse create(
@@ -60,10 +62,14 @@ public class ReviewService {
         getUser(receiverId);
         return reviewRepository.findByReceiverIdOrderByCreatedAtDescIdDesc(receiverId)
                 .stream()
-                .map(review -> ReviewListResponse.from(
-                        review,
-                        getProfile(review.getWriter().getId())
-                ))
+                .map(review -> {
+                    Profile writerProfile = getProfile(review.getWriter().getId());
+                    return ReviewListResponse.from(
+                            review,
+                            writerProfile,
+                            imageUrlResolver.resolve(writerProfile.getSport().getImageUrl())
+                    );
+                })
                 .toList();
     }
 

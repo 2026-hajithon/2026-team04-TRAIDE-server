@@ -11,6 +11,8 @@ public record MyProfileResponse(
         Long id,
         String loginId,
         String name,
+        @Schema(description = "선택한 운동 종목의 기본 프로필 이미지 URL")
+        String imageUrl,
         Integer age,
         Gender gender,
         SportSummaryResponse sport,
@@ -28,6 +30,7 @@ public record MyProfileResponse(
 ) {
     public static MyProfileResponse from(
             Profile profile,
+            String imageUrl,
             long friendCount,
             long appointmentCount,
             Double averageRating,
@@ -37,6 +40,7 @@ public record MyProfileResponse(
                 profile.getUser().getId(),
                 profile.getUser().getLoginId(),
                 profile.getName(),
+                imageUrl,
                 profile.getAge(),
                 profile.getGender(),
                 SportSummaryResponse.from(profile.getSport()),

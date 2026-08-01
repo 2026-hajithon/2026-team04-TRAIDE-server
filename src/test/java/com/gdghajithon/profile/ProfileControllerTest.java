@@ -70,6 +70,8 @@ class ProfileControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.userId").doesNotExist())
                 .andExpect(jsonPath("$.name").value("사용자"))
+                .andExpect(jsonPath("$.imageUrl")
+                        .value("https://api.example.com/images/sports/running.png"))
                 .andExpect(jsonPath("$.sport.id").value(1))
                 .andExpect(jsonPath("$.sport.name").value("러닝"))
                 .andExpect(jsonPath("$.level").value("INTERMEDIATE"))
@@ -135,6 +137,8 @@ class ProfileControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, authorization))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(2))
+                .andExpect(jsonPath("$.imageUrl")
+                        .value("https://api.example.com/images/sports/running.png"))
                 .andExpect(jsonPath("$.friendStatus").value("NONE"))
                 .andExpect(jsonPath("$.friendSinceDays").isEmpty())
                 .andExpect(jsonPath("$.friendshipId").doesNotExist())
@@ -153,6 +157,8 @@ class ProfileControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, authorization))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].id").value(2))
+                .andExpect(jsonPath("$.items[0].imageUrl")
+                        .value("https://api.example.com/images/sports/running.png"))
                 .andExpect(jsonPath("$.items[0].averageRating").isEmpty())
                 .andExpect(jsonPath("$.items[0].reviewCount").value(0));
         verify(profileService).getRecommendations(1L, List.of(1L, 2L), List.of(3L, 4L));
@@ -250,7 +256,9 @@ class ProfileControllerTest {
     private MyProfileResponse myProfileResponse() {
         LocalDateTime now = LocalDateTime.of(2026, 8, 1, 12, 0);
         return new MyProfileResponse(
-                1L, "user01", "사용자", 25, Gender.MALE,
+                1L, "user01", "사용자",
+                "https://api.example.com/images/sports/running.png",
+                25, Gender.MALE,
                 new SportSummaryResponse(1L, "러닝"), ExerciseLevel.INTERMEDIATE,
                 new RegionSummaryResponse(1L, "강남구"),
                 0, 0, null, 0, now, now);
@@ -258,7 +266,8 @@ class ProfileControllerTest {
 
     private UserDetailResponse userDetailResponse() {
         return new UserDetailResponse(
-                2L, "상대", 26, Gender.FEMALE,
+                2L, "상대", "https://api.example.com/images/sports/running.png",
+                26, Gender.FEMALE,
                 new SportSummaryResponse(1L, "러닝"), ExerciseLevel.BEGINNER,
                 new RegionSummaryResponse(1L, "강남구"),
                 0, 0, null, 0, FriendStatus.NONE, null);
@@ -266,7 +275,8 @@ class ProfileControllerTest {
 
     private UserRecommendationResponse recommendationResponse() {
         return new UserRecommendationResponse(
-                2L, "추천", 27, Gender.FEMALE,
+                2L, "추천", "https://api.example.com/images/sports/running.png",
+                27, Gender.FEMALE,
                 new SportSummaryResponse(1L, "러닝"), ExerciseLevel.INTERMEDIATE,
                 new RegionSummaryResponse(1L, "강남구"), null, 0);
     }

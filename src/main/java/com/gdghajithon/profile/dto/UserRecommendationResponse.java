@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record UserRecommendationResponse(
         Long id,
         String name,
+        @Schema(description = "선택한 운동 종목의 기본 프로필 이미지 URL")
+        String imageUrl,
         Integer age,
         Gender gender,
         SportSummaryResponse sport,
@@ -20,12 +22,14 @@ public record UserRecommendationResponse(
 ) {
     public static UserRecommendationResponse from(
             Profile profile,
+            String imageUrl,
             Double averageRating,
             long reviewCount
     ) {
         return new UserRecommendationResponse(
                 profile.getUser().getId(),
                 profile.getName(),
+                imageUrl,
                 profile.getAge(),
                 profile.getGender(),
                 SportSummaryResponse.from(profile.getSport()),
