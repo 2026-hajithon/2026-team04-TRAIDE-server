@@ -201,10 +201,10 @@ GDG Hajithon Team 04에서 개발했습니다.
 | 이름 | 포지션 | 담당 역할 | GitHub |
 | --- | --- | --- | --- |
 | 김태한 | Backend | 약속, 후기, 이미지, Firebase 연동 등 | [taehan0](https://github.com/taehan0) |
-| 이름 | Backend | 사용자, 인증, 친구 관련 기능 | GitHub 주소 |
-| 이름 | iOS | iOS 애플리케이션 및 Firebase 채팅 | GitHub 주소 |
-| 이름 | Design | UI/UX 디자인 |  |
-| 이름 | Design | UI/UX 디자인 |  |
+| 이정훈 | Backend | 사용자, 인증, 친구 관련 기능 |wjdgns313131] (https://github.com/wjdgns313131) |
+| 김지우 | iOS | iOS 애플리케이션 및 Firebase 채팅 | GitHub 주소 |
+| 윤유빈 | Design | UI/UX 디자인 |  |
+| 성유정 | Design | UI/UX 디자인 |  |
 
 ## 📖 API 문서
 
