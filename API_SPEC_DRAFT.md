@@ -4,7 +4,7 @@
 >
 > 상태: 논의용 초안  
 > 대상: Spring Boot 백엔드, MySQL, iOS  
-> API 스타일: REST, JSON, `/api/v1`  
+> API 스타일: REST, JSON, `/api`
 > 목적: 8월 1일 해커톤에서 구현할 최소 기능과 iOS-백엔드 계약을 먼저 맞춘다.
 
 > 이 문서의 API 경로, JSON 필드명, enum 코드, 검증 범위는 모두 **1차 제안**이다. iOS 개발자와 응답 형태를 확인한 뒤 확정한다.
@@ -287,46 +287,46 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 | Method | Path | 설명 | 인증 |
 |---|---|---|---:|
-| POST | `/api/v1/auth/signup` | 회원가입 | X |
-| POST | `/api/v1/auth/login` | 로그인 | X |
-| GET | `/api/v1/metadata` | 운동 종목과 서울 지역 목록 | X |
+| POST | `/api/auth/signup` | 회원가입 | X |
+| POST | `/api/auth/login` | 로그인 | X |
+| GET | `/api/metadata` | 운동 종목과 서울 지역 목록 | X |
 
 ## 사용자와 이미지
 
 | Method | Path | 설명 | 인증 |
 |---|---|---|---:|
-| GET | `/api/v1/users/me` | 내 프로필 조회 | O |
-| PATCH | `/api/v1/users/me` | 내 프로필 수정 | O |
-| GET | `/api/v1/users/{userId}` | 사용자 공개 프로필 조회 | O |
-| POST | `/api/v1/images` | 이미지 1장 업로드 | O |
+| GET | `/api/users/me` | 내 프로필 조회 | O |
+| PATCH | `/api/users/me` | 내 프로필 수정 | O |
+| GET | `/api/users/{userId}` | 사용자 공개 프로필 조회 | O |
+| POST | `/api/images` | 이미지 1장 업로드 | O |
 
 ## 추천과 친구
 
 | Method | Path | 설명 | 인증 |
 |---|---|---|---:|
-| GET | `/api/v1/recommendations` | 추천 사용자 최대 10명 조회 | O |
-| POST | `/api/v1/friend-requests` | 친구 요청 보내기 | O |
-| GET | `/api/v1/friend-requests/received` | 받은 대기 요청 조회 | O |
-| POST | `/api/v1/friend-requests/{requestId}/accept` | 친구 요청 수락 | O |
-| POST | `/api/v1/friend-requests/{requestId}/reject` | 친구 요청 거절 | O |
-| GET | `/api/v1/friends` | 친구 목록 조회 | O |
-| DELETE | `/api/v1/friends/{friendUserId}` | 친구 삭제 | O |
+| GET | `/api/recommendations` | 추천 사용자 최대 10명 조회 | O |
+| POST | `/api/friend-requests` | 친구 요청 보내기 | O |
+| GET | `/api/friend-requests/received` | 받은 대기 요청 조회 | O |
+| POST | `/api/friend-requests/{requestId}/accept` | 친구 요청 수락 | O |
+| POST | `/api/friend-requests/{requestId}/reject` | 친구 요청 거절 | O |
+| GET | `/api/friends` | 친구 목록 조회 | O |
+| DELETE | `/api/friends/{friendUserId}` | 친구 삭제 | O |
 
 ## 약속
 
 | Method | Path | 설명 | 인증 |
 |---|---|---|---:|
-| POST | `/api/v1/friends/{friendUserId}/appointments` | 약속 생성 | O |
-| GET | `/api/v1/friends/{friendUserId}/appointments` | 두 사용자의 약속 목록 | O |
-| PATCH | `/api/v1/appointments/{appointmentId}` | 약속 수정 | O |
-| DELETE | `/api/v1/appointments/{appointmentId}` | 약속 삭제 | O |
+| POST | `/api/friends/{friendUserId}/appointments` | 약속 생성 | O |
+| GET | `/api/friends/{friendUserId}/appointments` | 두 사용자의 약속 목록 | O |
+| PATCH | `/api/appointments/{appointmentId}` | 약속 수정 | O |
+| DELETE | `/api/appointments/{appointmentId}` | 약속 삭제 | O |
 
 ## 후기
 
 | Method | Path | 설명 | 인증 |
 |---|---|---|---:|
-| POST | `/api/v1/users/{userId}/reviews` | 해당 사용자에게 후기 작성 | O |
-| GET | `/api/v1/users/{userId}/reviews` | 해당 사용자가 받은 후기 조회 | O |
+| POST | `/api/users/{userId}/reviews` | 해당 사용자에게 후기 작성 | O |
+| GET | `/api/users/{userId}/reviews` | 해당 사용자가 받은 후기 조회 | O |
 
 ---
 
@@ -334,7 +334,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.1 회원가입
 
-`POST /api/v1/auth/signup`
+`POST /api/auth/signup`
 
 > iOS는 회원가입 화면과 온보딩 화면에서 입력한 값을 모아 마지막 `시작하기` 버튼에서 한 번 요청한다.
 
@@ -378,7 +378,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.2 로그인
 
-`POST /api/v1/auth/login`
+`POST /api/auth/login`
 
 ### 요청
 
@@ -406,7 +406,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.3 메타데이터 조회
 
-`GET /api/v1/metadata`
+`GET /api/metadata`
 
 ### 응답 `200 OK`
 
@@ -475,7 +475,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.4 내 프로필 조회
 
-`GET /api/v1/users/me`
+`GET /api/users/me`
 
 ### 응답 `200 OK`
 
@@ -516,7 +516,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.5 내 프로필 수정
 
-`PATCH /api/v1/users/me`
+`PATCH /api/users/me`
 
 전달한 필드만 변경한다.
 
@@ -559,7 +559,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.6 사용자 공개 프로필 조회
 
-`GET /api/v1/users/{userId}`
+`GET /api/users/{userId}`
 
 ### 응답 `200 OK`
 
@@ -602,7 +602,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.7 이미지 업로드
 
-`POST /api/v1/images`
+`POST /api/images`
 
 `Content-Type: multipart/form-data`
 
@@ -634,7 +634,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.8 추천 사용자 조회
 
-`GET /api/v1/recommendations?sportId=3&regionId=2&size=10`
+`GET /api/recommendations?sportId=3&regionId=2&size=10`
 
 모든 쿼리 파라미터는 선택 사항이다.
 
@@ -694,7 +694,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.9 친구 요청 보내기
 
-`POST /api/v1/friend-requests`
+`POST /api/friend-requests`
 
 ### 요청
 
@@ -726,7 +726,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.10 받은 친구 요청 조회
 
-`GET /api/v1/friend-requests/received`
+`GET /api/friend-requests/received`
 
 ### 응답 `200 OK`
 
@@ -761,7 +761,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.11 친구 요청 수락
 
-`POST /api/v1/friend-requests/{requestId}/accept`
+`POST /api/friend-requests/{requestId}/accept`
 
 ### 응답 `200 OK`
 
@@ -786,7 +786,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.12 친구 요청 거절
 
-`POST /api/v1/friend-requests/{requestId}/reject`
+`POST /api/friend-requests/{requestId}/reject`
 
 ### 응답 `200 OK`
 
@@ -799,7 +799,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.13 친구 목록 조회
 
-`GET /api/v1/friends`
+`GET /api/friends`
 
 ### 응답 `200 OK`
 
@@ -831,7 +831,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.14 친구 삭제
 
-`DELETE /api/v1/friends/{friendUserId}`
+`DELETE /api/friends/{friendUserId}`
 
 ### 응답 `204 No Content`
 
@@ -839,7 +839,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.15 약속 생성
 
-`POST /api/v1/friends/{friendUserId}/appointments`
+`POST /api/friends/{friendUserId}/appointments`
 
 ### 요청
 
@@ -878,7 +878,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.16 두 사용자 사이의 약속 목록
 
-`GET /api/v1/friends/{friendUserId}/appointments`
+`GET /api/friends/{friendUserId}/appointments`
 
 ### 응답 `200 OK`
 
@@ -905,7 +905,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.17 약속 수정
 
-`PATCH /api/v1/appointments/{appointmentId}`
+`PATCH /api/appointments/{appointmentId}`
 
 전달한 필드만 변경한다.
 
@@ -932,7 +932,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.18 약속 삭제
 
-`DELETE /api/v1/appointments/{appointmentId}`
+`DELETE /api/appointments/{appointmentId}`
 
 ### 응답 `204 No Content`
 
@@ -940,7 +940,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.19 후기 작성
 
-`POST /api/v1/users/{userId}/reviews`
+`POST /api/users/{userId}/reviews`
 
 `userId`는 후기를 받을 사용자 ID다.
 
@@ -983,7 +983,7 @@ MySQL 데이터 모델과 Spring API를 만들지 않는다.
 
 ## 5.20 받은 후기 조회
 
-`GET /api/v1/users/{userId}/reviews?page=0&size=20`
+`GET /api/users/{userId}/reviews?page=0&size=20`
 
 ### 응답 `200 OK`
 
@@ -1094,7 +1094,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 
 ## 7.1 API 계약
 
-- 모든 REST API는 `/api/v1`으로 시작한다.
+- 모든 REST API는 `/api`로 시작한다.
 - Swagger UI를 API 계약의 기준으로 사용한다.
 - Swagger UI 제안 주소: `/swagger-ui/index.html`
 - OpenAPI JSON 제안 주소: `/v3/api-docs`
@@ -1224,7 +1224,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 ## iOS가 알아야 할 핵심 규칙
 
 1. 로그인은 `loginId + password`이고, 로그인 후 받은 JWT를 모든 인증 API의 `Authorization: Bearer {token}` 헤더에 넣습니다.
-2. 운동 종목, 지역, 실력, 성별 선택지는 `GET /api/v1/metadata`에서 받습니다.
+2. 운동 종목, 지역, 실력, 성별 선택지는 `GET /api/metadata`에서 받습니다.
 3. 추천 API는 최대 10명을 반환합니다. 카드 한 장씩 넘기는 동작은 iOS에서 처리합니다.
 4. 현재 친구, 자기 자신, 대기 중인 친구 요청 상대는 추천에서 제외됩니다.
 5. 받은 친구 요청과 친구 목록은 별도 API입니다. 채팅 탭에서 두 결과를 함께 표시합니다.
@@ -1238,7 +1238,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 
 ```text
 개발: 추후 공유
-API prefix: /api/v1
+API prefix: /api
 Swagger UI: /swagger-ui/index.html
 ```
 

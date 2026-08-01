@@ -45,7 +45,7 @@ class FriendServiceTest {
         assertThatThrownBy(() -> friendService.validateFriend(first.getId(), second.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.FRIENDSHIP_REQUIRED);
+                .isEqualTo(ErrorCode.NOT_FRIEND);
     }
 
     @Test
