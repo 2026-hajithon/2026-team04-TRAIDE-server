@@ -4,6 +4,8 @@ import com.gdghajithon.appointment.Appointment;
 import com.gdghajithon.appointment.AppointmentRepository;
 import com.gdghajithon.friend.Friendship;
 import com.gdghajithon.friend.FriendshipRepository;
+import com.gdghajithon.friendrequest.FriendRequest;
+import com.gdghajithon.friendrequest.FriendRequestRepository;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
 import com.gdghajithon.profile.dto.MyProfileResponse;
@@ -43,6 +45,7 @@ class ProfileServiceTest {
     @Autowired private SportRepository sportRepository;
     @Autowired private RegionRepository regionRepository;
     @Autowired private FriendshipRepository friendshipRepository;
+    @Autowired private FriendRequestRepository friendRequestRepository;
     @Autowired private AppointmentRepository appointmentRepository;
 
     private User currentUser;
@@ -190,6 +193,42 @@ class ProfileServiceTest {
 
         assertThat(response.friendStatus()).isEqualTo(FriendStatus.NONE);
         assertThat(response.friendSinceDays()).isNull();
+    }
+
+    @Test
+    void userDetailReturnsPendingForSentAndReceivedRequests() {
+        saveProfile(currentUser, "현재");
+        User sentTarget = saveUser("sentTarget");
+        User receivedTarget = saveUser("receivedTarget");
+        saveProfile(sentTarget, "보낸 대상");
+        saveProfile(receivedTarget, "받은 대상");
+        friendRequestRepository.save(FriendRequest.create(currentUser, sentTarget));
+        friendRequestRepository.saveAndFlush(FriendRequest.create(receivedTarget, currentUser));
+
+        UserDetailResponse sent =
+                profileService.getUserDetail(currentUser.getId(), sentTarget.getId());
+        UserDetailResponse received =
+                profileService.getUserDetail(currentUser.getId(), receivedTarget.getId());
+
+        assertThat(sent.friendStatus()).isEqualTo(FriendStatus.PENDING);
+        assertThat(sent.friendSinceDays()).isNull();
+        assertThat(received.friendStatus()).isEqualTo(FriendStatus.PENDING);
+        assertThat(received.friendSinceDays()).isNull();
+    }
+
+    @Test
+    void friendshipTakesPriorityOverPendingRequest() {
+        saveProfile(currentUser, "현재");
+        User target = saveUser("targetPriority");
+        saveProfile(target, "대상");
+        friendRequestRepository.saveAndFlush(FriendRequest.create(currentUser, target));
+        friendshipRepository.saveAndFlush(Friendship.create(currentUser, target));
+
+        UserDetailResponse response =
+                profileService.getUserDetail(currentUser.getId(), target.getId());
+
+        assertThat(response.friendStatus()).isEqualTo(FriendStatus.FRIEND);
+        assertThat(response.friendSinceDays()).isEqualTo(1);
     }
 
     @Test

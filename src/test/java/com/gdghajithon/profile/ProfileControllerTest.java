@@ -159,6 +159,52 @@ class ProfileControllerTest {
     }
 
     @Test
+    void recommendationFiltersAreDocumentedAsCommaSeparatedLongArrays() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[0].name")
+                        .value("sportIds"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[0].in")
+                        .value("query"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[0].required")
+                        .value(false))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[0].style")
+                        .value("form"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[0].explode")
+                        .value(false))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[0].schema.type")
+                        .value("array"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[0].schema.items.type")
+                        .value("integer"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[0].schema.items.format")
+                        .value("int64"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[0].example[0]")
+                        .value(2))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[0].example[1]")
+                        .value(3))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[1].name")
+                        .value("regionIds"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[1].in")
+                        .value("query"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[1].required")
+                        .value(false))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[1].style")
+                        .value("form"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[1].explode")
+                        .value(false))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[1].schema.type")
+                        .value("array"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[1].schema.items.type")
+                        .value("integer"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[1].schema.items.format")
+                        .value("int64"))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[1].example[0]")
+                        .value(1))
+                .andExpect(jsonPath("$.paths['/api/users/recommendations'].get.parameters[1].example[1]")
+                        .value(19));
+    }
+
+    @Test
     void validationFailureReturnsBadRequest() throws Exception {
         mockMvc.perform(post("/api/users/me")
                         .header(HttpHeaders.AUTHORIZATION, authorization)

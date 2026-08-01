@@ -18,6 +18,9 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
     @Query("SELECT profile FROM Profile profile WHERE profile.user.id = :userId")
     Optional<Profile> findWithAssociationsByUserId(@Param("userId") Long userId);
 
+    @EntityGraph(attributePaths = {"user", "sport", "region"})
+    List<Profile> findAllByUserIdIn(List<Long> userIds);
+
     @Query("""
             SELECT profile
             FROM Profile profile
@@ -34,6 +37,15 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
                          AND friendship.userB.id = candidate.id)
                      OR (friendship.userA.id = candidate.id
                          AND friendship.userB.id = :currentUserId)
+              )
+              AND NOT EXISTS (
+                  SELECT request.id
+                  FROM FriendRequest request
+                  WHERE request.status = com.gdghajithon.friendrequest.FriendRequestStatus.PENDING
+                    AND ((request.sender.id = :currentUserId
+                          AND request.receiver.id = candidate.id)
+                      OR (request.sender.id = candidate.id
+                          AND request.receiver.id = :currentUserId))
               )
             """)
     List<Profile> findRecommendationCandidates(

@@ -2,6 +2,8 @@ package com.gdghajithon.profile;
 
 import com.gdghajithon.friend.Friendship;
 import com.gdghajithon.friend.FriendshipRepository;
+import com.gdghajithon.friendrequest.FriendRequest;
+import com.gdghajithon.friendrequest.FriendRequestRepository;
 import com.gdghajithon.region.Region;
 import com.gdghajithon.region.RegionRepository;
 import com.gdghajithon.sport.Sport;
@@ -33,6 +35,7 @@ class ProfileRepositoryTest {
     @Autowired private SportRepository sportRepository;
     @Autowired private RegionRepository regionRepository;
     @Autowired private FriendshipRepository friendshipRepository;
+    @Autowired private FriendRequestRepository friendRequestRepository;
     @Autowired private EntityManager entityManager;
     @Autowired private EntityManagerFactory entityManagerFactory;
 
@@ -149,6 +152,34 @@ class ProfileRepositoryTest {
         assertThat(recommendations(current.getId(), List.of(), List.of()))
                 .extracting(profile -> profile.getUser().getId())
                 .containsExactly(candidate.getId());
+    }
+
+    @Test
+    void recommendationExcludesSentAndReceivedPendingRequestsOnly() {
+        Sport sport = saveSport("러닝");
+        Region region = saveRegion("강남구");
+        User current = saveUser("currentPending");
+        User sent = saveUser("sentPending");
+        User received = saveUser("receivedPending");
+        User accepted = saveUser("acceptedHistory");
+        User rejected = saveUser("rejectedHistory");
+        saveProfile(current, sport, region, "현재");
+        saveProfile(sent, sport, region, "보낸 요청");
+        saveProfile(received, sport, region, "받은 요청");
+        saveProfile(accepted, sport, region, "수락 기록");
+        saveProfile(rejected, sport, region, "거절 기록");
+        friendRequestRepository.save(FriendRequest.create(current, sent));
+        friendRequestRepository.save(FriendRequest.create(received, current));
+        FriendRequest acceptedRequest = FriendRequest.create(current, accepted);
+        acceptedRequest.accept();
+        friendRequestRepository.save(acceptedRequest);
+        FriendRequest rejectedRequest = FriendRequest.create(rejected, current);
+        rejectedRequest.reject();
+        friendRequestRepository.saveAndFlush(rejectedRequest);
+
+        assertThat(recommendations(current.getId(), List.of(), List.of()))
+                .extracting(profile -> profile.getUser().getId())
+                .containsExactlyInAnyOrder(accepted.getId(), rejected.getId());
     }
 
     private List<Profile> recommendations(

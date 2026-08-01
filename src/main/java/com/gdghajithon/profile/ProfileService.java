@@ -3,6 +3,7 @@ package com.gdghajithon.profile;
 import com.gdghajithon.appointment.AppointmentRepository;
 import com.gdghajithon.friend.Friendship;
 import com.gdghajithon.friend.FriendshipRepository;
+import com.gdghajithon.friendrequest.FriendRequestRepository;
 import com.gdghajithon.global.exception.BusinessException;
 import com.gdghajithon.global.exception.ErrorCode;
 import com.gdghajithon.profile.dto.MyProfileResponse;
@@ -40,6 +41,7 @@ public class ProfileService {
     private final SportRepository sportRepository;
     private final RegionRepository regionRepository;
     private final FriendshipRepository friendshipRepository;
+    private final FriendRequestRepository friendRequestRepository;
     private final AppointmentRepository appointmentRepository;
 
     @Transactional
@@ -110,8 +112,19 @@ public class ProfileService {
         Friendship friendship = friendshipRepository
                 .findByUserAIdAndUserBId(userAId, userBId)
                 .orElse(null);
-        FriendStatus status = friendship == null ? FriendStatus.NONE : FriendStatus.FRIEND;
-        Long friendSinceDays = friendship == null ? null : calculateFriendSinceDays(friendship);
+        FriendStatus status;
+        Long friendSinceDays;
+        if (friendship != null) {
+            status = FriendStatus.FRIEND;
+            friendSinceDays = calculateFriendSinceDays(friendship);
+        } else if (friendRequestRepository.existsPendingBetweenUsers(
+                currentUserId, targetUserId)) {
+            status = FriendStatus.PENDING;
+            friendSinceDays = null;
+        } else {
+            status = FriendStatus.NONE;
+            friendSinceDays = null;
+        }
         return UserDetailResponse.from(
                 profile,
                 friendCount,
