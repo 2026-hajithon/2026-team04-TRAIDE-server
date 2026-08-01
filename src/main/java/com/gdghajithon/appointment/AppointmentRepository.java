@@ -50,4 +50,20 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("userId") Long userId,
             @Param("friendId") Long friendId
     );
+
+    @Query("""
+            SELECT CASE
+                       WHEN appointment.creator.id = :userId THEN appointment.friend.id
+                       ELSE appointment.creator.id
+                   END AS friendUserId,
+                   COUNT(appointment) AS appointmentCount
+            FROM Appointment appointment
+            WHERE (appointment.creator.id = :userId AND appointment.friend.id IN :friendIds)
+               OR (appointment.friend.id = :userId AND appointment.creator.id IN :friendIds)
+            GROUP BY appointment.creator.id, appointment.friend.id
+            """)
+    List<FriendAppointmentCount> countByFriendUserIds(
+            @Param("userId") Long userId,
+            @Param("friendIds") List<Long> friendIds
+    );
 }

@@ -4,6 +4,7 @@ import com.gdghajithon.appointment.Appointment;
 import com.gdghajithon.appointment.AppointmentRepository;
 import com.gdghajithon.friend.Friendship;
 import com.gdghajithon.friend.FriendshipRepository;
+import com.gdghajithon.friend.FriendService;
 import com.gdghajithon.friendrequest.FriendRequest;
 import com.gdghajithon.friendrequest.FriendRequestRepository;
 import com.gdghajithon.global.exception.BusinessException;
@@ -39,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import({ProfileService.class, ReviewQueryService.class})
+@Import({ProfileService.class, ReviewQueryService.class, FriendService.class})
 class ProfileServiceTest {
 
     @Autowired private ProfileService profileService;
@@ -51,6 +52,7 @@ class ProfileServiceTest {
     @Autowired private FriendRequestRepository friendRequestRepository;
     @Autowired private AppointmentRepository appointmentRepository;
     @Autowired private ReviewRepository reviewRepository;
+    @Autowired private FriendService friendService;
 
     private User currentUser;
     private Sport sport;
@@ -261,6 +263,32 @@ class ProfileServiceTest {
 
         assertThat(response.friendStatus()).isEqualTo(FriendStatus.FRIEND);
         assertThat(response.friendSinceDays()).isEqualTo(1);
+    }
+
+    @Test
+    void deletingFriendChangesDetailAndRecommendationWithoutChangingProfileService() {
+        saveProfile(currentUser, "현재");
+        User target = saveUser("target");
+        saveProfile(target, "대상");
+        friendshipRepository.saveAndFlush(Friendship.create(currentUser, target));
+
+        assertThat(profileService.getUserDetail(currentUser.getId(), target.getId()).friendStatus())
+                .isEqualTo(FriendStatus.FRIEND);
+
+        friendService.deleteFriend(currentUser.getId(), target.getId());
+        friendshipRepository.flush();
+
+        UserDetailResponse detail = profileService.getUserDetail(currentUser.getId(), target.getId());
+        assertThat(detail.friendStatus()).isEqualTo(FriendStatus.NONE);
+        assertThat(detail.friendSinceDays()).isNull();
+        assertThat(profileService.getRecommendations(currentUser.getId(), null, null).items())
+                .extracting("id")
+                .contains(target.getId());
+
+        friendRequestRepository.saveAndFlush(FriendRequest.create(currentUser, target));
+        assertThat(profileService.getRecommendations(currentUser.getId(), null, null).items())
+                .extracting("id")
+                .doesNotContain(target.getId());
     }
 
     @Test
